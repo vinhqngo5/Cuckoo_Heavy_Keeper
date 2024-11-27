@@ -1,0 +1,50 @@
+# data folder
+data/
+
+# python venv folder
+pyvenv/
+
+# experimental folder
+experiments/
+old_experiments/
+old_experiments*/
+sequential_final*/
+throughput*/
+latency*/
+
+# Build directories and binary files
+build/
+out/
+out/coverage/*
+cmake-build-*/
+conan-cache/
+
+# User spesific settings
+CMakeUserPresets.json
+
+# IDE files
+.vs/
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.bak
+*.swp
+*~
+_ReSharper*
+*.log
+
+# OS Generated Files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+.Trash-*
+$RECYCLE.BIN/
+.TemporaryItems
+ehthumbs.db
+Thumbs.db

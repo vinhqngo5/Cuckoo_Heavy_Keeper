@@ -1,0 +1,93 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+
+		{
+			"name": "(gdb) Launch",
+			"type": "cppdbg",
+			"request": "launch",
+			// "program": "${command:cmake.launchTargetPath}",
+			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper",
+			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_heavyhitter",
+			// "args": ["--app.line_read=5000000", "--app.theta=0.0005", "--cuckooheavykeeper.bucket_num=2", "--app.dist_param=1.2", "--cuckooheavykeeper.theta=0.0005"],
+			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS",
+			"program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper",
+			"args": [
+				"--app.num_threads", "70",
+				"--app.dist_param", "1.5",
+				"--app.duration", "1",
+				"--cuckooheavykeeper.bucket_num", "128",
+				"--app.theta", "0.00005",
+				"--cuckooheavykeeper.theta", "0.00005",
+				"--app.num_runs", "10",
+				"--delegationheavyhitter.heavy_query_rate", "10"
+			],
+			// "args": ["--app.num_threads", "70", "--app.dist_param", "1.5", "--app.duration", "1", "--cuckooheavykeeper.bucket_num=512", "--app.theta=0.00005", "--cuckooheavykeeper.theta=0.00005"],
+			// "args": ["--app.line_read=100000", "--app.theta", "0.0005", "--app.dist_param", "0.8", "--cuckooheavykeeper.bucket_num=64", "--cuckooheavykeeper.theta=0.001", "--app.num_runs", "5"],
+			// "args": ["--app.line_read=100000", "--app.theta", "0.0005", "--app.dist_param", "1.2", "--cuckooheavykeeper.bucket_num=2", "--cuckooheavykeeper.theta=0.001", "--app.num_runs", "5", "--app.tuples_no", "1000"],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [
+				{
+					"name": "PATH",
+					"value": "${env:PATH}:${command:cmake.launchTargetDirectory}"
+				},
+				{
+					"name": "OTHER_VALUE",
+					"value": "Something something"
+				}
+			],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			]
+		},
+		{
+			"name": "(gdb) Launch with args",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${command:cmake.launchTargetPath}",
+			"args": ["--a", "${input:a}"],
+			"stopAtEntry": false,
+			"cwd": "${workspaceFolder}",
+			"environment": [
+				{
+					"name": "PATH",
+					"value": "${env:PATH}:${command:cmake.launchTargetDirectory}"
+				},
+				{
+					"name": "OTHER_VALUE",
+					"value": "Something something"
+				}
+			],
+			"externalConsole": false,
+			"MIMode": "gdb",
+			"setupCommands": [
+				{
+					"description": "Enable pretty-printing for gdb",
+					"text": "-enable-pretty-printing",
+					"ignoreFailures": true
+				}
+			],
+			"logging": {
+				"engineLogging": true,
+				"trace": true,
+				"traceResponse": true,
+				"moduleLoad": true,
+			}
+		}
+	],
+	"inputs": [
+		{
+			"id": "a",
+			"type": "promptString",
+			"description": "Enter a value for a",
+			"default": "10"
+		}
+	]
+}

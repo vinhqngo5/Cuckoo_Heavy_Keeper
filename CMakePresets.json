@@ -1,0 +1,52 @@
+{
+	"version": 8,
+	"configurePresets": [
+		{
+			"name": "config-base",
+			"displayName": "base configuration",
+			"description": "Using compilers: C = /usr/bin/clang, CXX = /usr/bin/clang++",
+			"binaryDir": "${sourceDir}/build/${presetName}",
+			"cacheVariables": {
+				"CMAKE_C_COMPILER": "/usr/bin/clang",
+				"≈": "/usr/bin/clang++"
+			}
+		},
+		{
+			"name": "debug",
+			"displayName": "debug configuration",
+			"description": "config-base + CMAKE_BUILD_TYPE = Debug",
+			"inherits": "config-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Debug"
+			}
+		},
+		{
+			"name": "release",
+			"displayName": "release configuration",
+			"description": "config-base + CMAKE_BUILD_TYPE = Release",
+			"inherits": "config-base",
+			"cacheVariables": {
+				"CMAKE_BUILD_TYPE": "Release"
+			}
+		}
+	],
+	"buildPresets": [
+		{
+			"name": "build-base",
+			"hidden": true,
+			"configurePreset": "debug",
+			"jobs": 20
+		},
+		{
+			"name": "debug",
+			"displayName": "Build Debug",
+			"inherits": "build-base"
+		},
+		{
+			"name": "release",
+			"displayName": "Build Release",
+			"inherits": "build-base",
+			"configurePreset": "release"
+		}
+	]
+}

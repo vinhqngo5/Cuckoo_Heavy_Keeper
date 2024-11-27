@@ -1,0 +1,4 @@
+Checks: '-*,modernize-*'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'
+FormatStyle: none

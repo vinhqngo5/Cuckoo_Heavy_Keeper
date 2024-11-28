@@ -204,7 +204,7 @@ class LatencyExperimentAnalyzer:
             margin=dict(
                 l=5,
                 r=5,
-                t=90,
+                t=40,
                 b=5,
                 pad=0
             ),

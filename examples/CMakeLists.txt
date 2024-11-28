@@ -55,12 +55,91 @@ target_compile_definitions(example_optimized_weighted_frequent PRIVATE ALGORITHM
 target_link_libraries(example_optimized_weighted_frequent PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 
-# example_delegation_heavyhitter
-# 1. Binary with ALGORITHM = cuckoo_heavy_keeper
+# mCHK-I
+## throughput 
 set (FREQUENCY_ESTIMATOR_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     CACHE STRING "Flags for compiling the frequency estimator" FORCE
 )
+set(DELEGATION_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCHKI_throughput delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mCHKI_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCHKI_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+## latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCHKI_latency delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mCHKI_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCHKI_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# mCHK-q
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCHKQ_throughput delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mCHKQ_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCHKQ_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+## latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=cuckoo_heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCHKQ_latency delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mCHKQ_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+
+
+
+# example_delegation_heavyhitter
+# 1. Binary with ALGORITHM = cuckoo_heavy_keeper
+# set (FREQUENCY_ESTIMATOR_FLAGS
+#     "ALGORITHM=cuckoo_heavy_keeper"
+#     CACHE STRING "Flags for compiling the frequency estimator" FORCE
+# )
 # EVALUATE_ACCURACY_WHEN=start && EVALUATE_ACCURACY_ERROR_SOURCES=algo/algo_df
 # EVALUATE_ACCURACY_WHEN=ivl_end && EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous
 # set(DELEGATION_FLAGS
@@ -78,16 +157,16 @@ set (FREQUENCY_ESTIMATOR_FLAGS
 #     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
 #     CACHE STRING "Flags for compiling the delegation sketch" FORCE
 # )
-add_executable(example_delegation_heavyhitter_cuckoo_heavy_keeper delegation_sketch/example_delegation_heavyhitter.cpp)
-target_compile_definitions(example_delegation_heavyhitter_cuckoo_heavy_keeper PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
-target_link_libraries(example_delegation_heavyhitter_cuckoo_heavy_keeper PRIVATE frequency_estimator_objects delegation_sketch_objects)
+# add_executable(example_delegation_heavyhitter_cuckoo_heavy_keeper delegation_sketch/example_delegation_heavyhitter.cpp)
+# target_compile_definitions(example_delegation_heavyhitter_cuckoo_heavy_keeper PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+# target_link_libraries(example_delegation_heavyhitter_cuckoo_heavy_keeper PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 # example_delegation_heavyhitter_QPOPSS
 # 1. Binary with ALGORITHM = cuckoo_heavy_keeper
-set (FREQUENCY_ESTIMATOR_FLAGS
-    "ALGORITHM=cuckoo_heavy_keeper"
-    CACHE STRING "Flags for compiling the frequency estimator" FORCE
-)
+# set (FREQUENCY_ESTIMATOR_FLAGS
+#     "ALGORITHM=cuckoo_heavy_keeper"
+#     CACHE STRING "Flags for compiling the frequency estimator" FORCE
+# )
 # EVALUATE_ACCURACY_WHEN=start && EVALUATE_ACCURACY_ERROR_SOURCES=algo/algo_df
 # EVALUATE_ACCURACY_WHEN=ivl_end && EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous
 # set(DELEGATION_FLAGS
@@ -106,9 +185,9 @@ set (FREQUENCY_ESTIMATOR_FLAGS
 #     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
 #     CACHE STRING "Flags for compiling the delegation sketch" FORCE
 # )
-add_executable(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
-target_compile_definitions(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
-target_link_libraries(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS PRIVATE frequency_estimator_objects delegation_sketch_objects)
+# add_executable(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+# target_compile_definitions(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+# target_link_libraries(example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 
 

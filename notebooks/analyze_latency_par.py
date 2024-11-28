@@ -20,7 +20,7 @@ class LatencyExperimentAnalyzer:
         ]
         
         # Load colors
-        with open('/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json') as f:
+        with open('./notebooks/material-colors.json') as f:
             self.material_colors = json.load(f)
 
     def parse_experiment_path(self, path: str) -> Dict[str, Any]:
@@ -252,7 +252,7 @@ fixed_params = {
 
 subplot_params = ['DIST_PARAM', 'THETA', 'DIST_PARAM']
 
-base_path = "/home/vinh/Q32024/CuckooHeavyKeeper/latency_2024_11_11"
+base_path = "./experiments"
 analyzer = LatencyExperimentAnalyzer(
     base_path=base_path,
     fixed_params=fixed_params,

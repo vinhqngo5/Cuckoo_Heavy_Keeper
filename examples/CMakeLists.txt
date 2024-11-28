@@ -1,7 +1,3 @@
-# Create an executable for the example
-add_executable(example_module1 example_module1.cpp)
-target_link_libraries(example_module1 PRIVATE module1_objects)
-
 # example_heavyhitter
 # 1. Binary with ALGORITHM = count_min
 add_executable(example_count_min frequency_estimator/example_heavyhitter.cpp)
@@ -102,7 +98,7 @@ set (FREQUENCY_ESTIMATOR_FLAGS
 set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
-    "PARALLEL_DESIGN=QPOPSS"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
     "EVALUATE_MODE=throughput"
     "EVALUATE_ACCURACY_WHEN=ivl"
@@ -120,7 +116,7 @@ set (FREQUENCY_ESTIMATOR_FLAGS
 set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
-    "PARALLEL_DESIGN=QPOPSS"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
     "EVALUATE_MODE=latency"
     "EVALUATE_ACCURACY_WHEN=ivl"

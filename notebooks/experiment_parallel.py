@@ -68,26 +68,30 @@ from itertools import product
 # configs for accuracy experiment
 algorithms = ["cuckoo_heavy_keeper"]
 parallel_designs = ["GLOBAL_HASHMAP", "QPOPSS"]
-evaluate_modes = ["accuracy"]
+evaluate_modes = ["throughput", "latency"]
 accuracy_stream_sizes = [10000000]
-# num_threads = [10, 20, 30, 40, 50, 60, 70]
-num_threads = [30]
-heavy_query_rates = [0, 1]
-# dist_params = [1.2, 1.5]
+num_threads = [10, 20, 30, 40, 50, 60, 70]
+heavy_query_rates = [0, 1, 10]
 dist_params = [1.5]
 theta = 0.00005
 bucket_num = 128
-num_runs = 100
+num_runs = 30
 # accuracy_when = ["start", "ivl", "end"]
-accuracy_when = [ "ivl", "end"]
+accuracy_when = [ "ivl"]
 accuracy_error_sources = {
     "start": ["algo", "algo_df"],
     "end": ["algo", "algo_df"],
     "ivl": ["algo_df_continuous"]
 }
 parallel_design_targets = {
-    "GLOBAL_HASHMAP": "example_delegation_heavyhitter_cuckoo_heavy_keeper",
-    "QPOPSS": "example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS"
+    "GLOBAL_HASHMAP": {
+        "throughput": "example_mCHKQ_throughput",
+        "latency": "example_mCHKQ_latency",
+    },
+    "QPOPSS": {
+        "throughput": "example_mCHKI_throughput",
+        "latency": "example_mCHKI_latency",
+    }
 }
 duration = 1
 
@@ -139,9 +143,9 @@ def build_project(algorithm, parallel_design, evaluate_mode, stream_size=None, w
     subprocess.run(build_cmd, shell=True, check=True)
 
 # Run function
-def run_project(parallel_design, num_threads, dist_param, cuckoo_theta, heavy_query_rate):
+def run_project(parallel_design, num_threads, dist_param, cuckoo_theta, heavy_query_rate, evaluate_mode):
     print (f"Running project with num_threads={num_threads}, dist_param={dist_param}, cuckoo_theta={cuckoo_theta}, heavy_query_rate={heavy_query_rate}, parallel_design={parallel_design}")
-    executable = f"./build/release/bin/release/{parallel_design_targets[parallel_design]}"
+    executable = f"./build/bin/release/{parallel_design_targets[parallel_design][evaluate_mode]}"
     runtime_config = (
         f"--app.num_threads {num_threads} "
         f"--app.dist_param {dist_param} "
@@ -153,7 +157,7 @@ def run_project(parallel_design, num_threads, dist_param, cuckoo_theta, heavy_qu
         f"--app.num_runs {num_runs}" # number of run times
     )
 
-    cmd = f"{executable} {runtime_config} &>> /home/vinh/Q32024/CuckooHeavyKeeper/build/release/bin/release/log.txt"
+    cmd = f"{executable} {runtime_config}"
     print(f"Running command:\n{cmd}")
     max_attempts = 4
     for attempt in range(max_attempts):
@@ -172,15 +176,15 @@ if __name__ == "__main__":
         for parallel_design in parallel_designs:
             for evaluate_mode in evaluate_modes:
                 if evaluate_mode == "throughput" or evaluate_mode == "latency":
-                    build_project(algorithm, parallel_design, evaluate_mode)
+                    # build_project(algorithm, parallel_design, evaluate_mode)
                     for threads, dist_param, heavy_query_rate in product(num_threads, dist_params, heavy_query_rates):
-                        run_project(parallel_design, threads, dist_param, theta, heavy_query_rate)
+                        run_project(parallel_design, threads, dist_param, theta, heavy_query_rate, evaluate_mode)
                 elif evaluate_mode == "accuracy":
                     for stream_size, when in product(accuracy_stream_sizes, accuracy_when):
                         for error_source in accuracy_error_sources[when]:
                             print (f"Running accuracy project with stream_size={stream_size}, when={when}, error_source={error_source}")
-                            build_project(algorithm, parallel_design, evaluate_mode, stream_size, when, error_source)
+                            # build_project(algorithm, parallel_design, evaluate_mode, stream_size, when, error_source)
                             for threads, dist_param, heavy_query_rate in product(num_threads, dist_params, heavy_query_rates):
-                                run_project(parallel_design, threads, dist_param, theta, heavy_query_rate)
+                                run_project(parallel_design, threads, dist_param, theta, heavy_query_rate, evaluate_mode)
 
 

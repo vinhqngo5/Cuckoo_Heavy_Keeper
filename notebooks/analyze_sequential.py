@@ -459,8 +459,7 @@ class SequentialExperimentAnalyzer:
 # Example usage:
 
 # base_path = "../experiments/sequential"
-base_path = "/home/vinh/Q32024/CuckooHeavyKeeper/sequential_final_2024_11_11"
-# base_path = "/home/vinh/Q32024/CuckooHeavyKeeper/sequential_final_2024_11_09"
+base_path = "./experiments/sequential"
 fixed_params = {
     'DIST_PARAM': {'0.8', '1', '1.2', '1.4', '1.6'},
     'BASE_UNIT': {'2', '4', '8', '16', '32'},

@@ -61,7 +61,7 @@ template <typename KeyType> class BoundedKeyValuePriorityQueue {
     }
 
   public:
-    BoundedKeyValuePriorityQueue(size_t max_size = 0) : max_size(max_size), is_bounded(max_size > 0) {}
+    BoundedKeyValuePriorityQueue(size_t max_size = 0) : max_size(max_size), is_bounded(max_size > 0) { heap.reserve(max_size + 10); }
 
     void push(const KeyType &key, int weight) {
         auto it = key_to_index.find(key);

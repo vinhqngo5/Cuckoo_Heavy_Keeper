@@ -1,3 +1,33 @@
+## Table of Contents
+
+1. [Design](#design)
+   - [Cuckoo Heavy Keeper](#cuckoo-heavy-keeper)
+   - [Parallel Cuckoo Heavy Keeper](#parallel-cuckoo-heavy-keeper)
+   - [Directory Description](#directory-description)
+
+2. [Prerequisites](#prerequisites)
+   - [System Requirements](#system-requirements)
+   - [Install Dependencies](#install-dependencies)
+   - [Python Setup](#python-setup)
+   - [Build Configuration](#build-configuration)
+
+3. [Compile & Run](#compile--run)
+   - [Sequential Heavy Hitter Examples](#sequential-heavy-hitter-examples)
+     - [Available Algorithms](#available-algorithms)
+     - [Compile Instructions](#compile-instructions)
+     - [Basic Usage](#basic-usage)
+     - [Example Commands](#example-commands)
+   - [Parallel Heavy Hitter Examples](#parallel-heavy-hitter-examples)
+     - [Available Algorithms](#available-algorithms-1)
+     - [Compile Instructions](#compile-instructions-1)
+     - [Basic Usage](#basic-usage-1)
+     - [Example Commands](#example-commands-1)
+
+4. [Reproduce](#reproduce)
+   - [Sequential Heavy Hitter Figures](#sequential-heavy-hitter-figures)
+   - [Parallel Heavy Hitter Figures](#parallel-heavy-hitter-figures)
+
+
 ## Design
 ### Cuckoo Heavy Keeper
 - [`src/frequency_estimator/CuckooHeavyKeeper.hpp`](src/frequency_estimator/CuckooHeavyKeeper.hpp): Contains the source code for the CuckoHeavyKeeper.
@@ -491,5 +521,60 @@ thread: 4 start: 341688 end: 427110 end-start:85422
 thread: 5 start: 427110 end: 512532 end-start:85422
 thread: 6 start: 512532 end: 597954 end-start:85422
 ...
-````
+```
 </div>
+
+## Reproduce 
+### Sequential Heavy Hitter Figures
+
+To reproduce the sequential heavy hitter figure, follow these steps:
+
+1. **Install Prerequisites**: Ensure you have all the necessary prerequisites installed. Refer to the [Prerequisites](#prerequisites) section above.
+
+2. **Run the Experiment**: Execute the following command to run the sequential heavy hitter experiment and generate the results:
+
+    ```sh
+    python ./notebooks/experiment_sequential.py
+    ```
+
+    This will run the experiment and produce the results needed to generate the sequential heavy hitter figures.
+
+3. **Plot the Results**: Execute the following command to analyze the results and generate the plot:
+
+    ```sh
+    python ./notebooks/analyze_sequential.py
+    ```
+
+    This will analyze the results from the experiment and generate the plot for the sequential heavy hitter figures in `experiments/sequential/figures`
+
+### Parallel Heavy Hitter Figures 
+
+To reproduce the parallel heavy hitter figures, follow these steps:
+
+1. **Install Prerequisites**: Ensure you have all the necessary prerequisites installed. Refer to the [Prerequisites](#prerequisites) section above.
+
+2. **Run the Parallel Experiments**: Execute the following command to run the parallel heavy hitter experiments and generate the results:
+
+    ```sh
+    python ./notebooks/experiment_parallel.py
+    ```
+
+    This will run the experiments and produce the results needed for analyzing parallel performance.
+
+3. **Plot the Throughput Results**: Execute the following command to analyze and plot throughput:
+
+    ```sh 
+    python ./notebooks/analyze_throughput_par.py
+    ```
+
+    This will generate the throughput plots in `experiments/figures`.
+
+4. **Plot the Latency Results**: Execute the following command to analyze and plot latency:
+
+    ```sh
+    python ./notebooks/analyze_latency_par.py 
+    ```
+    
+    This will generate the latency plots in `experiments/figures`.
+
+The figures will show parallel scaling behavior including throughput and latency metrics across different thread counts.

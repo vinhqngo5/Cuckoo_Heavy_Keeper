@@ -15,7 +15,8 @@ from dataclasses import dataclass
 
 # Base paths setup
 BASE_DIR = Path(__file__).parent.parent
-BINARY_DIR = BASE_DIR / "build/release/bin/release"
+# BINARY_DIR = BASE_DIR / "build/release/bin/release"
+BINARY_DIR = BASE_DIR / "build/bin/release"
 RESULTS_DIR = BASE_DIR / "experiments/sequential/"
 MATERIAL_COLORS_FILE = BASE_DIR / "notebooks/material-colors.json"
 
@@ -91,10 +92,10 @@ class ExperimentRunner:
         base_unit = config.base_unit
         theta = config.theta
         return {
-            # "example_count_min": f"--countmin.width={32*base_unit} --countmin.depth={8}",
-            # "example_heavy_keeper": f"--heavykeeper.m2={85*base_unit}",
-            # "example_cuckoo_heavy_keeper": f"--cuckooheavykeeper.bucket_num={32*base_unit} --cuckooheavykeeper.theta={theta}",
-            # "example_augmented_sketch": f"--augmentedsketch.width={29 + (base_unit-1) * 32} --augmentedsketch.depth={8}",
+            "example_count_min": f"--countmin.width={32*base_unit} --countmin.depth={8}",
+            "example_heavy_keeper": f"--heavykeeper.m2={85*base_unit}",
+            "example_cuckoo_heavy_keeper": f"--cuckooheavykeeper.bucket_num={32*base_unit} --cuckooheavykeeper.theta={theta}",
+            "example_augmented_sketch": f"--augmentedsketch.width={29 + (base_unit-1) * 32} --augmentedsketch.depth={8}",
             "example_heap_hashmap_space_saving": f"--spacesaving.k={43*base_unit}",
         }
 

@@ -27,7 +27,7 @@ class ThroughputExperimentAnalyzer:
         ]
         
         # Load colors once at initialization
-        with open('/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json') as f:
+        with open('./notebooks/material-colors.json') as f:
             self.material_colors = json.load(f)
 
     def get_design_style(self, design: str, query_rate: str) -> dict:
@@ -390,13 +390,14 @@ fixed_params = {
     'NUM_THREADS': {'2', '5', '10', '20', '30', '40', '50', '60', '70'},
     'THETA': {'0.000050'},
     'PARALLEL_DESIGN': {'GLOBAL_HASHMAP', 'QPOPSS'},
+    'EVALUATE_MODE': {'throughput'},
     # 'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '5.000000', '10.000000'}
     'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '10.000000'}
 }
 
 subplot_params = ['DIST_PARAM', 'THETA', 'DIST_PARAM']
 
-base_path="/home/vinh/Q32024/CuckooHeavyKeeper/throughput_2024_11_10"
+base_path="./experiments"
 analyzer = ThroughputExperimentAnalyzer(
     base_path=base_path,
     fixed_params=fixed_params,
@@ -416,7 +417,7 @@ analyzer = ThroughputExperimentAnalyzer(
 # fig.write_image(os.path.join(figure_path, 'par_throughput_plot.pdf'))
 
 # Cache results
-cache_file = os.path.join(base_path, 'parallel_processed_data.json')
+cache_file = os.path.join(base_path, 'parallel_throughput_data.json')
 
 if os.path.exists(cache_file):
     print("Loading cached results...")

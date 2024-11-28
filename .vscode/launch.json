@@ -11,7 +11,8 @@
 			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_heavyhitter",
 			// "args": ["--app.line_read=5000000", "--app.theta=0.0005", "--cuckooheavykeeper.bucket_num=2", "--app.dist_param=1.2", "--cuckooheavykeeper.theta=0.0005"],
 			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper_QPOPSS",
-			"program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper",
+			// "program": "/home/vinh/Q32024/CuckooHeavyKeeper/build/debug/bin/debug/example_delegation_heavyhitter_cuckoo_heavy_keeper",
+			"program": "/home/vinh/Q32024/Cuckoo_Heavy_Keeper/build/bin/debug/example_mCHKI_throughput",
 			"args": [
 				"--app.num_threads", "70",
 				"--app.dist_param", "1.5",
@@ -19,7 +20,7 @@
 				"--cuckooheavykeeper.bucket_num", "128",
 				"--app.theta", "0.00005",
 				"--cuckooheavykeeper.theta", "0.00005",
-				"--app.num_runs", "10",
+				"--app.num_runs", "100",
 				"--delegationheavyhitter.heavy_query_rate", "10"
 			],
 			// "args": ["--app.num_threads", "70", "--app.dist_param", "1.5", "--app.duration", "1", "--cuckooheavykeeper.bucket_num=512", "--app.theta=0.00005", "--cuckooheavykeeper.theta=0.00005"],

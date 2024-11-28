@@ -3,7 +3,7 @@
 file(GLOB_RECURSE MODULE1_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/module1/*.cpp")
 
 # Create an object library for module1
-add_library(module1_objects OBJECT ${MODULE1_SOURCES})
+# add_library(module1_objects OBJECT ${MODULE1_SOURCES})
 
 # frequency_estimator
 # Collect all frequency_estimator sources

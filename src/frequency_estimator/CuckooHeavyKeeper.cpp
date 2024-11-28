@@ -34,14 +34,6 @@ void CuckooHeavyKeeper::_generate_fingerprint_and_index(const std::string &item,
 
 size_t CuckooHeavyKeeper::_generate_alt_index(fingerprint_t fp, size_t idx) const { return (idx ^ (0x5bd1e995 * fp)) & (m_bucket_num - 1); }
 
-// void CuckooHeavyKeeper::_generate_fingerprint_and_index(const std::string &item, fingerprint_t &fp, size_t &idx) const {
-//     unsigned long long h = _hash(item);
-//     fp = h % (1ULL << FINGERPRINT_BITS);
-//     idx = (h >> 32) % m_bucket_num;
-// }
-
-// size_t CuckooHeavyKeeper::_generate_alt_index(fingerprint_t fp, size_t idx) const { return (idx ^ (0x5bd1e995 * fp)) % m_bucket_num; }
-
 unsigned long long CuckooHeavyKeeper::_hash(const std::string &item) const { return m_bobhash->run(item.c_str(), item.size()); }
 
 void CuckooHeavyKeeper::_do_kickout(Entry kicked, size_t curr_table_idx, size_t curr_idx) {
@@ -74,7 +66,7 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
 
     // Calculate promotion probability only if target counter is greater
     if (target.counter > lobby.counter) {
-        double prob = lobby.counter * (1.0 / (target.counter - lobby.counter));
+        double prob = (lobby.counter - m_promotion_threshold) * (1.0 / (target.counter - m_promotion_threshold));
         if ((static_cast<double>(rand()) / RAND_MAX) >= prob) { return false; }
     }
 
@@ -116,23 +108,6 @@ counter_t CuckooHeavyKeeper::_decay_counter(counter_t current, int weight) {
 
     return left;
 }
-
-// bool CuckooHeavyKeeper::_check_and_update_heavy(fingerprint_t fp, size_t idx1, size_t idx2, int weight, counter_t &result) {
-//     for (size_t table_idx = 0; table_idx < 2; ++table_idx) {
-//         size_t idx = (table_idx == 0) ? idx1 : idx2;
-//         Bucket &bucket = m_tables[table_idx][idx];
-
-//         for (size_t i = 1; i < Bucket::ENTRIES_PER_BUCKET; ++i) {
-//             Entry &entry = bucket.entries[i];
-//             if (entry.counter > 0 && entry.fingerprint == fp) {
-//                 entry.counter += weight;
-//                 result = entry.counter;
-//                 return true;
-//             }
-//         }
-//     }
-//     return false;
-// }
 
 bool CuckooHeavyKeeper::_check_and_update_heavy(fingerprint_t fp, size_t idx1, size_t idx2, int weight, counter_t &result) {
     size_t empty_table_idx = -1;

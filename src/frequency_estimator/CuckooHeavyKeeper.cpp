@@ -72,7 +72,7 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
 
     // Handle promotion and kickout
     Entry kicked = target;
-    std::swap(target, lobby);
+    target.fingerprint = lobby.fingerprint;
     lobby = Entry{};
     _do_kickout(kicked, table_idx, idx);
     return true;
@@ -155,10 +155,8 @@ bool CuckooHeavyKeeper::_check_and_update_lobby(fingerprint_t fp, size_t idx1, s
 
             if (lobby.counter >= m_promotion_threshold) {
                 Entry &smallest = bucket.get_smallest_heavy();
-                if (_try_promote_and_kickout(lobby, smallest, table_idx, idx)) {
-                    result = smallest.counter;
-                    return true;
-                }
+                result = lobby.counter > smallest.counter ? lobby.counter : smallest.counter;
+                if (_try_promote_and_kickout(lobby, smallest, table_idx, idx)) { return true; }
                 lobby.counter = m_promotion_threshold;
             }
             result = lobby.counter;
@@ -183,44 +181,35 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
     // check if it is in lobby entries -> update and return
     if (_check_and_update_lobby(fp, idx1, idx2, weight, result)) { return result; }
 
-    size_t target_table_idx = 0;
-    size_t target_idx = 0;
-    bool found_empty = false;
-
     // check for empty lobby entries first
     for (size_t table_idx = 0; table_idx < 2; ++table_idx) {
         size_t idx = (table_idx == 0) ? idx1 : idx2;
         Entry &lobby = m_tables[table_idx][idx].get_lobby();
 
         if (lobby.is_empty()) {
-            target_table_idx = table_idx;
-            target_idx = idx;
             lobby = Entry{fp, weight};
-            found_empty = true;
-            break;
+            return weight;
         }
     }
 
     // if no empty entries found, use consistent table selection
-    if (!found_empty) {
-        target_table_idx = fp & 1;
-        target_idx = (target_table_idx == 0) ? idx1 : idx2;
-    }
+    size_t target_table_idx = fp & 1;
+    size_t target_idx = (target_table_idx == 0) ? idx1 : idx2;
 
     Entry &target_lobby = m_tables[target_table_idx][target_idx].get_lobby();
 
-    if (!found_empty) {
-        counter_t new_count = _decay_counter(target_lobby.counter, weight);
-        target_lobby = (new_count == 0) ? Entry{fp, weight - m_decay_expectations[target_lobby.counter]} : Entry{target_lobby.fingerprint, new_count};
-    }
+    counter_t new_count = _decay_counter(target_lobby.counter, weight);
+    target_lobby = (new_count == 0) ? Entry{fp, weight - m_decay_expectations[target_lobby.counter]} : Entry{target_lobby.fingerprint, new_count};
 
-    if (target_lobby.counter >= m_promotion_threshold) {
+    if (target_lobby.counter > m_promotion_threshold) {
         Entry &smallest = m_tables[target_table_idx][target_idx].get_smallest_heavy();
-        if (_try_promote_and_kickout(target_lobby, smallest, target_table_idx, target_idx)) { return smallest.counter; }
+        int result = target_lobby.counter > smallest.counter ? target_lobby.counter : smallest.counter;
+        if (_try_promote_and_kickout(target_lobby, smallest, target_table_idx, target_idx)) { return result; }
         target_lobby.counter = m_promotion_threshold;
+        return m_promotion_threshold;
     }
 
-    return target_lobby.counter;
+    return weight;
 }
 
 counter_t CuckooHeavyKeeper::_estimate_impl(const std::string &item) const {

@@ -12,6 +12,8 @@ CuckooHeavyKeeper::CuckooHeavyKeeper(size_t bucket_num, double theta, counter_t 
 
     srand(static_cast<unsigned int>(clock()));
     m_bobhash = new BOBHash64(rand() % 1228);
+    rng.seed(std::random_device()());
+    dist = std::uniform_real_distribution<double>(0.0, 1.0);
     _init_decay_expectations();
 }
 
@@ -67,7 +69,9 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
     // Calculate promotion probability only if target counter is greater
     if (target.counter > lobby.counter) {
         double prob = (lobby.counter - m_promotion_threshold) * (1.0 / (target.counter - m_promotion_threshold));
-        if ((static_cast<double>(rand()) / RAND_MAX) >= prob) { return false; }
+        // if ((static_cast<double>(rand()) / RAND_MAX) >= prob) { return false; }
+        double rand_prob = dist(rng);
+        if (rand_prob >= prob) { return false; }
     }
 
     // Handle promotion and kickout
@@ -84,7 +88,9 @@ counter_t CuckooHeavyKeeper::_decay_counter(counter_t current, int weight) {
     if (weight == 1) {
         // Original Heavy Keeper decay with probability b^(-current)
         double decay_prob = std::pow(m_decay_base, -current);
-        if ((static_cast<double>(rand()) / RAND_MAX) < decay_prob) { return current - 1; }
+        // if ((static_cast<double>(rand()) / RAND_MAX) < decay_prob) { return current - 1; }
+        double rand_prob = dist(rng);
+        if (rand_prob < decay_prob) { return current - 1; }
         return current;
     }
 

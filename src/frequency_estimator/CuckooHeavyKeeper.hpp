@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <iostream>
+#include <random>
 #include <string>
 #include <vector>
 
@@ -70,6 +71,8 @@ class CuckooHeavyKeeper : public FrequencyEstimatorBase {
     std::array<std::vector<Bucket>, 2> m_tables;
     BOBHash64 *m_bobhash;
     std::array<double, MAX_COUNTER + 1> m_decay_expectations;
+    std::mt19937_64 rng;
+    std::uniform_real_distribution<double> dist;
 
     bool _is_power_of_two(size_t x) const { return x && !(x & (x - 1)); }
     void _init_decay_expectations();

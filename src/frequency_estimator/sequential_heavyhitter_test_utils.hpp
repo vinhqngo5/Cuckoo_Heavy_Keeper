@@ -114,32 +114,11 @@ void run_test(FrequencyEstimatorConfig &frequency_estimator_configs, const std::
     }
 }
 
-template <typename FrequencyEstimatorConfig> void test_CAIDA(FrequencyEstimatorConfig &frequency_estimator_configs, SequentialAppConfig &app_configs) {
-    std::string data_path = "/home/vinh/Q32024/CuckooHeavyKeeper/data/CAIDA/only_ip";
-    std::ifstream input_file(data_path);
-    std::string line;
-    std::vector<std::string> data;
-
-    while (getline(input_file, line) && data.size() < app_configs.LINE_READ) { data.push_back(line); }
-
-    run_test<FrequencyEstimatorConfig, std::string>(frequency_estimator_configs, data, app_configs);
-}
-
-template <typename FrequencyEstimatorConfig> void test_Zipf(FrequencyEstimatorConfig &frequency_estimator_configs, SequentialAppConfig &app_configs) {
-    Relation *r1 = generate_relation(app_configs);
-    std::vector<unsigned int> data(r1->tuples->begin(), r1->tuples->begin() + app_configs.LINE_READ);
-    // std::vector<std::string> data;
-    // for (size_t i = 0; i < app_configs.LINE_READ && i < r1->tuples->size(); ++i) { data.push_back(std::to_string((*r1->tuples)[i])); }
-
-    run_test<FrequencyEstimatorConfig, unsigned int>(frequency_estimator_configs, data, app_configs);
-    // run_test<FrequencyEstimatorConfig, std::string>(frequency_estimator_configs, data, app_configs);
-}
-
 template <typename FrequencyEstimatorConfig> void test(FrequencyEstimatorConfig frequency_estimator_configs, SequentialAppConfig &app_configs) {
-    if (app_configs.DATASET == "CAIDA") {
-        test_CAIDA(frequency_estimator_configs, app_configs);
-    } else if (app_configs.DATASET == "zipf") {
-        test_Zipf(frequency_estimator_configs, app_configs);
+    if (app_configs.DATASET == "zipf" || app_configs.DATASET == "AdTracking" || app_configs.DATASET == "WebDocs" || app_configs.DATASET == "CAIDA") {
+        Relation *r1 = generate_relation(app_configs);
+        std::vector<unsigned int> data(r1->tuples->begin(), r1->tuples->begin() + app_configs.LINE_READ);
+        run_test<FrequencyEstimatorConfig, unsigned int>(frequency_estimator_configs, data, app_configs);
     } else {
         std::cerr << "Invalid dataset" << std::endl;
     }

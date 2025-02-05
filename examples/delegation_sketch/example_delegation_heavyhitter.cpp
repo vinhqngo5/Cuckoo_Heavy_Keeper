@@ -9,6 +9,8 @@
 #include "frequency_estimator/CountMinSketch.hpp"
 #include "frequency_estimator/CuckooHeavyKeeper.hpp"
 #include "frequency_estimator/FrequencyEstimatorConfig.hpp"
+#include "frequency_estimator/HeapHashMapSpaceSaving.hpp"
+#include "frequency_estimator/HeavyKeeper.hpp"
 #include "frequency_estimator/MacroPreprocessor.hpp"
 #include "heavy_hitter_app/AppConfig.hpp"
 
@@ -23,6 +25,12 @@ using FrequencyEstimator = AugmentedSketch;
 #elif EQUAL(ALGORITHM, cuckoo_heavy_keeper)
 using FrequencyEstimatorConfig = CuckooHeavyKeeperConfig;
 using FrequencyEstimator = CuckooHeavyKeeper;
+#elif EQUAL(ALGORITHM, heavy_keeper)
+using FrequencyEstimatorConfig = HeavyKeeperConfig;
+using FrequencyEstimator = HeavyKeeper;
+#elif EQUAL(ALGORITHM, heap_hashmap_space_saving)
+using FrequencyEstimatorConfig = SpaceSavingConfig;
+using FrequencyEstimator = HeapHashMapSpaceSavingV2;
 #endif
 
 using DelegationConfigBasedOnMode = DelegationHeavyHitterConfig;

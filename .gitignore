@@ -2,7 +2,7 @@
 data/
 
 # python venv folder
-pyvenv/
+pyvenv
 
 # experimental folder
 experiments/

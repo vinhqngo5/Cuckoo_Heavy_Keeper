@@ -225,7 +225,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
         shuffle(begin((*r1->tuples)), begin((*r1->tuples)) + app_configs.tuples_no, rng);
     } else if (app_configs.DATASET == "AdTracking") {
         // read file from repo folder ./data/TalkingData_AdTracking/2017_11_07_small
-        r1->tuples = new vector<unsigned int>(app_configs.tuples_no);
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
 
         string current_path = __FILE__;
         size_t pos = current_path.find("/src/");
@@ -239,7 +239,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         string line;
         int i = 0;
-        while (getline(in_file, line) && i < app_configs.tuples_no) {
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
             stringstream ss(line);
             string token;
             getline(ss, token, ',');
@@ -249,10 +249,10 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         in_file.close();
         r1->tuples_no = i;
-        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
     } else if (app_configs.DATASET == "WebDocs") {
         // read file from repo folder ./data/WebDocs/webdocs_small
-        r1->tuples = new vector<unsigned int>(app_configs.tuples_no);
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
 
         string current_path = __FILE__;
         size_t pos = current_path.find("/src/");
@@ -266,21 +266,21 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         string line;
         int i = 0;
-        while (getline(in_file, line) && i < app_configs.tuples_no) {
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
             (*r1->tuples)[i] = stoi(line);
             i++;
         }
 
         in_file.close();
         r1->tuples_no = i;
-        app_configs.tuples_no = i;
-    } else if (app_configs.DATASET == "CAIDA") {
-        // read file from repo folder ./data/CAIDA/CAIDA_2018_source_ports
-        r1->tuples = new vector<unsigned int>(app_configs.tuples_no);
+        app_configs.LINE_READ = i;
+    } else if (app_configs.DATASET == "CAIDA_H") {
+        // read file from repo folder ./data/CAIDA/caida_10000000_src_port
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
 
         string current_path = __FILE__;
         size_t pos = current_path.find("/src/");
-        string filename = current_path.substr(0, pos) + "/data/CAIDA/CAIDA_2018_source_ports";
+        string filename = current_path.substr(0, pos) + "/data/CAIDA/caida_10000000_src_port";
         std::cout << "Reading file: " << filename << std::endl;
         ifstream in_file(filename);
         if (!in_file) {
@@ -290,14 +290,49 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         string line;
         int i = 0;
-        while (getline(in_file, line) && i < app_configs.tuples_no) {
-            (*r1->tuples)[i] = stoi(line);
-            i++;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            if (!line.empty()) {
+                (*r1->tuples)[i] = stoi(line);
+                i++;
+            }
         }
 
         in_file.close();
         r1->tuples_no = i;
-        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
+    } else if (app_configs.DATASET == "CAIDA_L") {
+        // read file from repo folder ./data/CAIDA/caida_10000000_src_port
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
+
+        string current_path = __FILE__;
+        size_t pos = current_path.find("/src/");
+        string filename = current_path.substr(0, pos) + "/data/CAIDA/caida_10000000_src_ip_int";
+        std::cout << "Reading file: " << filename << std::endl;
+        ifstream in_file(filename);
+        if (!in_file) {
+            cerr << "Unable to open file" << endl;
+            exit(1);
+        }
+
+        string line;
+        int i = 0;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            if (!line.empty()) {
+                string ip = line;
+                stringstream ss(ip);
+                string octet;
+                unsigned int result = 0;
+                for (int j = 0; j < 4; j++) {
+                    getline(ss, octet, '.');
+                    result = (result << 8) + stoi(octet);
+                }
+                (*r1->tuples)[i] = result;
+                i++;
+            }
+        }
+        in_file.close();
+        r1->tuples_no = i;
+        app_configs.LINE_READ = i;
     }
 
     else {

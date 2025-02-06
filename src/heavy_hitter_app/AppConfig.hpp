@@ -31,7 +31,7 @@ struct CommonAppConfig {
         parser.AddParameter(new IntParameter("delegation.dist_type", "1", &app_config.DIST_TYPE, false, "Distribution type for the dataset"));
         parser.AddParameter(new DoubleParameter("app.dist_param", "1.3", &app_config.DIST_PARAM, false, "Distribution parameter for the dataset"));
         parser.AddParameter(new DoubleParameter("app.dist_shuff", "0", &app_config.DIST_SHUFF, false, "Distribution shuffle for the dataset"));
-        parser.AddParameter(new StringParameter("app.dataset", "zipf", &app_config.DATASET, false, "Dataset: WebDocs/AdTracking/CAIDA/zipf"));
+        parser.AddParameter(new StringParameter("app.dataset", "zipf", &app_config.DATASET, false, "Dataset: WebDocs/AdTracking/CAIDA_L/CAIDA_H/zipf"));
         parser.AddParameter(new FloatParameter("app.theta", "0.01", &app_config.THETA, false, "Theta value for the finding heavy hitters"));
         parser.AddParameter(new IntParameter("app.duration", "1", &app_config.DURATION, false, "Duration of the benchmark"));
     }

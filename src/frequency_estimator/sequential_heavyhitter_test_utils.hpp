@@ -25,7 +25,7 @@ void print_results(FrequencyEstimator &frequency_estimator, const std::map<KeyTy
                    const std::map<KeyType, int> &heavy_hitter_counter_2, int count_correct, double execution_time, int line_read) {
     auto print_section = [](const std::string &title) { std::cout << "# " << title << std::endl; };
 
-    auto print_metric = [](const std::string &name, const auto &value) { std::cout << name << ": " << value << std::endl; };
+    auto print_metric = [](const std::string &name, const auto &value) { std::cout << std::fixed << name << ": " << value << std::endl; };
 
     size_t exact_count = exact_counter.size();
     size_t hh_count = heavy_hitter_counter.size();
@@ -115,7 +115,8 @@ void run_test(FrequencyEstimatorConfig &frequency_estimator_configs, const std::
 }
 
 template <typename FrequencyEstimatorConfig> void test(FrequencyEstimatorConfig frequency_estimator_configs, SequentialAppConfig &app_configs) {
-    if (app_configs.DATASET == "zipf" || app_configs.DATASET == "AdTracking" || app_configs.DATASET == "WebDocs" || app_configs.DATASET == "CAIDA") {
+    if (app_configs.DATASET == "zipf" || app_configs.DATASET == "AdTracking" || app_configs.DATASET == "WebDocs" || app_configs.DATASET == "CAIDA_L" ||
+        app_configs.DATASET == "CAIDA_H") {
         Relation *r1 = generate_relation(app_configs);
         std::vector<unsigned int> data(r1->tuples->begin(), r1->tuples->begin() + app_configs.LINE_READ);
         run_test<FrequencyEstimatorConfig, unsigned int>(frequency_estimator_configs, data, app_configs);

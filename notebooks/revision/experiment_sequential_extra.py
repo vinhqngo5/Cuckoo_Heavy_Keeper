@@ -77,7 +77,7 @@ class Logger:
         return logger
 
 class ExperimentRunner:
-    RESULT_PATTERN = r'RESULT_SUMMARY: FrequencyEstimator=(\w+(?:\s*\w+)*) TotalHeavyHitters=(\d+) TotalHeavyHitterCandidates=(\d+) Precision=([\d.e-]+) Recall=([\d.e-]+) F1Score=([\d.e-]+) ARE=([\d.e-]+) AAE=([\d.e-]+) ExecutionTime=([\d.e-]+) Throughput=([\d.e-]+)'
+    RESULT_PATTERN = r'RESULT_SUMMARY: FrequencyEstimator=(\w+(?:\s*\w+)*) TotalHeavyHitters=(\d+) TotalHeavyHitterCandidates=(\d+) Precision=([\d.e-]+|-nan) Recall=([\d.e-]+|-nan) F1Score=([\d.e-]+|-nan) ARE=([\d.e-]+|-nan) AAE=([\d.e-]+|-nan) ExecutionTime=([\d.e-]+) Throughput=([\d.e-]+)'
     METRICS = ['Precision', 'Recall', 'ARE', 'AAE', 'ExecutionTime', 'Throughput', 'F1Score']
 
     def __init__(self, binary_dir: Path, results_dir: Path):
@@ -126,6 +126,10 @@ class ExperimentRunner:
         
         logger.info(f"Duration: {time.time() - start_time:.2f} seconds")
 
+    def _safe_float_convert(self, value: str) -> float:
+        """Safely convert string to float, handling -nan cases"""
+        return float(0.0) if value == '-nan' else float(value)
+    
     def _process_results(self, log_files: List[Path]) -> pd.DataFrame:
         """Process log files and return combined results as DataFrame."""
         data = []
@@ -137,11 +141,11 @@ class ExperimentRunner:
                             'FrequencyEstimator': match.group(1),
                             'TotalHeavyHitters': int(match.group(2)),
                             'TotalHeavyHitterCandidates': int(match.group(3)),
-                            'Precision': float(match.group(4)),
-                            'Recall': float(match.group(5)),
-                            'F1Score': float(match.group(6)),
-                            'ARE': float(match.group(7)),
-                            'AAE': float(match.group(8)),
+                            'Precision': self._safe_float_convert(match.group(4)),
+                            'Recall': self._safe_float_convert(match.group(5)),
+                            'F1Score': self._safe_float_convert(match.group(6)),
+                            'ARE': self._safe_float_convert(match.group(7)),
+                            'AAE': self._safe_float_convert(match.group(8)),
                             'ExecutionTime': float(match.group(9)),
                             'Throughput': float(match.group(10))
                         })
@@ -190,11 +194,13 @@ class ExperimentRunner:
         for cmd_name, cmd_flags in self._get_sketch_commands(config).items():
             cmd_logger = self.logger.get_logger(cmd_name)
             command = [f"./{cmd_name}"] + config.get_base_flags().split() + cmd_flags.split()
-            self._run_command(command, cmd_logger)
             print (command)
+            self._run_command(command, cmd_logger)
         
         # Process and plot results
+        print ("go here")
         df = self._process_results(list(log_dir.glob('*.log')))
+        print ("go here 1")
         self._plot_metrics(df, figure_dir)
         
         # Print summary statistics
@@ -206,9 +212,12 @@ def main():
     configs = [
         ExperimentConfig(dataset=ds, base_unit=bu, theta=t)
         # for ds in ["WebDocs", "AdTracking", "CAIDA"]  # Available datasets
-        for ds in ["CAIDA_L", "CAIDA_H", "WebDocs", "AdTracking"]  # Available datasets
-        for bu in [2, 4, 8, 16, 32, 64]
+        # for ds in ["CAIDA_L", "CAIDA_H", "WebDocs", "AdTracking"]  # Available datasets
+        for ds in ["WebDocs", "AdTracking"]  # Available datasets
+        # for bu in [2, 4, 8, 16, 32, 64]
+        for bu in [ 4, 8, 16, 32, 64]
         for t in [0.0001, 0.0005, 0.001, 0.005, 0.01]
+        # for t in [0.005, 0.01]
     ]
     
     runner = ExperimentRunner(BINARY_DIR, RESULTS_DIR)

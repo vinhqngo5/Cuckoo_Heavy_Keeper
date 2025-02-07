@@ -249,6 +249,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         in_file.close();
         r1->tuples_no = i;
+        app_configs.tuples_no = i;
         app_configs.LINE_READ = i;
     } else if (app_configs.DATASET == "WebDocs") {
         // read file from repo folder ./data/WebDocs/webdocs_small
@@ -273,6 +274,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         in_file.close();
         r1->tuples_no = i;
+        app_configs.tuples_no = i;
         app_configs.LINE_READ = i;
     } else if (app_configs.DATASET == "CAIDA_H") {
         // read file from repo folder ./data/CAIDA/caida_10000000_src_port
@@ -299,6 +301,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
 
         in_file.close();
         r1->tuples_no = i;
+        app_configs.tuples_no = i;
         app_configs.LINE_READ = i;
     } else if (app_configs.DATASET == "CAIDA_L") {
         // read file from repo folder ./data/CAIDA/caida_10000000_src_port
@@ -332,6 +335,7 @@ template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs
         }
         in_file.close();
         r1->tuples_no = i;
+        app_configs.tuples_no = i;
         app_configs.LINE_READ = i;
     }
 

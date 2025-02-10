@@ -193,8 +193,16 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
         Entry &lobby = m_tables[table_idx][idx].get_lobby();
 
         if (lobby.is_empty()) {
-            lobby = Entry{fp, weight};
-            return weight;
+            if (weight < m_promotion_threshold) {
+                lobby = Entry{fp, weight};
+                return weight;
+            } else {
+                Entry &smallest = m_tables[table_idx][idx].get_smallest_heavy();
+                int result = weight > smallest.counter ? weight : smallest.counter;
+                if (_try_promote_and_kickout(lobby, smallest, table_idx, idx)) { return result; }
+                lobby.counter = m_promotion_threshold;
+                return m_promotion_threshold;
+            }
         }
     }
 
@@ -204,7 +212,9 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
 
     Entry &target_lobby = m_tables[target_table_idx][target_idx].get_lobby();
 
+    Entry tmp = target_lobby;
     counter_t new_count = _decay_counter(target_lobby.counter, weight);
+
     target_lobby = (new_count == 0) ? Entry{fp, weight - m_decay_expectations[target_lobby.counter]} : Entry{target_lobby.fingerprint, new_count};
 
     if (target_lobby.counter > m_promotion_threshold) {

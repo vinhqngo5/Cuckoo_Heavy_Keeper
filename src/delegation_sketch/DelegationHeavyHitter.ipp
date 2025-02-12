@@ -5,7 +5,7 @@ bool LocalHeavyHitterTracker::add_if_is_local_heavy_hitter(int key, int differen
     local_heavy_hitter_differences.push_back(make_tuple(key, difference, count));
 
     if (local_heavy_hitters.contains(key)) {
-        local_heavy_hitters.update_add(key, count);
+        local_heavy_hitters.update_add(key, difference);
         return true;
     } else {
         local_heavy_hitters.push(key, count);

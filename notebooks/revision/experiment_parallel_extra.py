@@ -5,10 +5,10 @@ from itertools import product
 # Algorithm mappings
 algorithms = [
     "count_min",           # CMS
-    "heavy_keeper",        # HK 
     "cuckoo_heavy_keeper", # CHK
     "augmented_sketch",    # AS
-    "heap_hashmap_space_saving" # SS
+    "heap_hashmap_space_saving", # SS
+    "heavy_keeper"        # HK 
 ]
 
 # Algorithm abbreviation mapping
@@ -20,12 +20,17 @@ algo_abbrev = {
     "heap_hashmap_space_saving": "SS"
 }
 
-parallel_designs = ["GLOBAL_HASHMAP", "QPOPSS"]
-evaluate_modes = ["throughput", "latency"]
+# parallel_designs = ["GLOBAL_HASHMAP", "QPOPSS"]
+parallel_designs = ["QPOPSS"]
+# evaluate_modes = ["throughput", "latency"]
+evaluate_modes = ["throughput"]
 accuracy_stream_sizes = [10000000]
-num_threads = [10, 20, 30, 40, 50, 60, 70]
+num_threads = [2, 5, 10, 20, 30, 40, 50, 60, 70]
+# num_threads = [70]
+# num_threads = [10]
 heavy_query_rates = [0, 1, 10]
 dist_params = [1.5]
+# dist_params = [0.8, 1.0, 1.2, 1.4, 1.6]
 theta = 0.00005
 base_unit = 1
 num_runs = 30
@@ -105,7 +110,7 @@ def build_project(algorithm, parallel_design, evaluate_mode, stream_size=None, w
 def run_project(algorithm, parallel_design, num_threads, dist_param, cuckoo_theta, heavy_query_rate, evaluate_mode):
     print(f"Running project with algorithm={algorithm}, num_threads={num_threads}, dist_param={dist_param}, heavy_query_rate={heavy_query_rate}")
     
-    executable = f"./build/bin/release/{parallel_design_targets[parallel_design][evaluate_mode][algorithm]}"
+    executable = f"./build/release/bin/release/{parallel_design_targets[parallel_design][evaluate_mode][algorithm]}"
     algorithm_params = get_algorithm_params(algorithm, base_unit, theta)
     
     runtime_config = (
@@ -113,6 +118,8 @@ def run_project(algorithm, parallel_design, num_threads, dist_param, cuckoo_thet
         f"--app.dist_param {dist_param} "
         f"--app.duration {duration} "
         f"--app.theta {theta} "
+        f"--app.dataset CAIDA_H "
+        f"--app.line_read 10000000 "
         f"--delegationheavyhitter.heavy_query_rate {heavy_query_rate} "
         f"--app.num_runs {num_runs} "
         f"{algorithm_params}"

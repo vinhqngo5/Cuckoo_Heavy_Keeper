@@ -395,13 +395,12 @@ fixed_params = {
     # 'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '5.000000', '10.000000'}
     'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '10.000000'},
     # 'ALGORITHM': {'cuckoo_heavy_keeper', 'augmented_sketch', 'count_min', 'heavy_keeper', 'heap_hashmap_space_saving'},
-    'ALGORITHM': {'cuckoo_heavy_keeper'},
+    'ALGORITHM': {'heap_hashmap_space_saving'},
     
 }
 
 subplot_params = ['DIST_PARAM', 'THETA', 'DIST_PARAM']
-
-base_path="./experiments/parallel_varying_skewness"
+base_path="./experiments/parallel_varying_skewness_20250212"
 analyzer = ThroughputExperimentAnalyzer(
     base_path=base_path,
     fixed_params=fixed_params,

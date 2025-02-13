@@ -392,12 +392,14 @@ fixed_params = {
     'PARALLEL_DESIGN': {'GLOBAL_HASHMAP', 'QPOPSS'},
     'EVALUATE_MODE': {'throughput'},
     # 'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '5.000000', '10.000000'}
-    'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '10.000000'}
+    'HEAVY_QUERY_RATE': {'0.000000', '1.000000', '10.000000'},
+    # 'ALGORITHM': {'cuckoo_heavy_keeper', 'augmented_sketch', 'count_min', 'heavy_keeper', 'heap_hashmap_space_saving'},
+    'ALGORITHM': {'heap_hashmap_space_saving'},
 }
 
 subplot_params = ['DIST_PARAM', 'THETA', 'DIST_PARAM']
 
-base_path="./experiments/parallel_CAIDA_L"
+base_path="./experiments/parallel_CAIDA_H_20250213"
 analyzer = ThroughputExperimentAnalyzer(
     base_path=base_path,
     fixed_params=fixed_params,

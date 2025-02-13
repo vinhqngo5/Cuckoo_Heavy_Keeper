@@ -20,8 +20,8 @@ algo_abbrev = {
     "heap_hashmap_space_saving": "SS"
 }
 
-# parallel_designs = ["GLOBAL_HASHMAP", "QPOPSS"]
-parallel_designs = ["QPOPSS"]
+parallel_designs = ["GLOBAL_HASHMAP", "QPOPSS"]
+# parallel_designs = ["QPOPSS"]
 # evaluate_modes = ["throughput", "latency"]
 evaluate_modes = ["throughput"]
 accuracy_stream_sizes = [10000000]
@@ -118,7 +118,7 @@ def run_project(algorithm, parallel_design, num_threads, dist_param, cuckoo_thet
         f"--app.dist_param {dist_param} "
         f"--app.duration {duration} "
         f"--app.theta {theta} "
-        f"--app.dataset CAIDA_H "
+        f"--app.dataset CAIDA_L "
         f"--app.line_read 10000000 "
         f"--delegationheavyhitter.heavy_query_rate {heavy_query_rate} "
         f"--app.num_runs {num_runs} "

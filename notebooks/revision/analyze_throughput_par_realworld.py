@@ -68,15 +68,6 @@ class ThroughputExperimentAnalyzer:
             return float(match.group(1))
         return 0.0
 
-    def read_throughput_file(self, folder_path: str) -> float:
-        """Read delegation file and extract throughput value."""
-        for filename in os.listdir(folder_path):
-            if filename.endswith('_delegation.json'):
-                file_path = os.path.join(folder_path, filename)
-                with open(file_path, 'r') as f:
-                    content = f.read()
-                    return self.extract_throughput(content)
-        return 0.0
 
     def matches_fixed_params(self, params: Dict[str, str]) -> bool:
         """Check if experiment parameters match the fixed parameters."""
@@ -84,20 +75,67 @@ class ThroughputExperimentAnalyzer:
             if key in params and params[key] not in values:
                 return False
         return True
+    
+    # def read_throughput_file(self, folder_path: str) -> float:
+    #     """Read delegation file and extract throughput value."""
+    #     for filename in os.listdir(folder_path):
+    #         if filename.endswith('_delegation.json'):
+    #             file_path = os.path.join(folder_path, filename)
+    #             with open(file_path, 'r') as f:
+    #                 content = f.read()
+    #                 return self.extract_throughput(content)
+    #     return 0.0
+
+    # def analyze_throughput_experiments(self) -> List[Dict[str, Any]]:
+    #     """Analyze all experiments and prepare visualization data."""
+    #     results = []
+        
+    #     for root, dirs, files in os.walk(self.base_path):
+    #         if any(f.endswith('_delegation.json') for f in files):
+    #             params = self.parse_experiment_path(root)
+                
+    #             if not self.matches_fixed_params(params):
+    #                 continue
+    #             throughput = self.read_throughput_file(root)
+    #             if throughput > 0:
+    #                 params['throughput'] = throughput
+    #                 results.append(params)
+        
+    #     return results
+    
+    def read_throughput_file(self, folder_path: str) -> List[float]:
+        """Read all delegation files and extract throughput values."""
+        throughputs = []
+        for filename in os.listdir(folder_path):
+            if filename.endswith('_delegation.json'):
+                file_path = os.path.join(folder_path, filename)
+                with open(file_path, 'r') as f:
+                    content = f.read()
+                    throughput = self.extract_throughput(content)
+                    if throughput > 0:
+                        throughputs.append(throughput)
+        return throughputs
 
     def analyze_throughput_experiments(self) -> List[Dict[str, Any]]:
         """Analyze all experiments and prepare visualization data."""
         results = []
         
         for root, dirs, files in os.walk(self.base_path):
-            if any(f.endswith('_delegation.json') for f in files):
+            delegation_files = [f for f in files if f.endswith('_delegation.json')]
+            if delegation_files:  # If folder contains delegation files
                 params = self.parse_experiment_path(root)
                 
                 if not self.matches_fixed_params(params):
                     continue
-                throughput = self.read_throughput_file(root)
-                if throughput > 0:
-                    params['throughput'] = throughput
+                    
+                # Get all throughput values for this experiment
+                throughputs = self.read_throughput_file(root)
+                
+                if throughputs:  # Only include if we have valid throughput values
+                    # Calculate average throughput
+                    avg_throughput = sum(throughputs) / len(throughputs)
+                    params['throughput'] = avg_throughput
+                    params['num_runs'] = len(throughputs)  # Optional: track number of runs
                     results.append(params)
         
         return results

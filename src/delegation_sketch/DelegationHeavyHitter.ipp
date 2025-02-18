@@ -296,10 +296,10 @@ template <typename FrequencyEstimator> void ThreadLocalDelegationHeavyHitter<Fre
 
     this->thread_pairwise_stat_collectors[owner_thread_id].update_delegate_to_j_items();
 
-    if (owner_thread_id == current_thread_id) {
-        this->insert_directly(key);
-        return;
-    }
+    // if (owner_thread_id == current_thread_id) {
+    //     this->insert_directly(key);
+    //     return;
+    // }
 
     auto filter = delegation_filters[owner_thread_id];
     bool flag = false;

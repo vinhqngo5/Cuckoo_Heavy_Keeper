@@ -228,16 +228,17 @@ template <class Key, class T, class Allocator, class Partial, std::size_t SLOT_P
     }
 
     void destroy_buckets() noexcept {
-        if (is_deallocated()) { return; }
-        // The bucket default constructor is nothrow, so we don't have to
-        // worry about dealing with exceptions when constructing all the
-        // elements.
-        static_assert(std::is_nothrow_destructible<bucket>::value, "bucket_container requires bucket to be nothrow "
-                                                                   "destructible");
-        clear();
-        for (size_type i = 0; i < size(); ++i) { traits_::destroy(allocator_, &buckets_[i]); }
-        bucket_allocator_.deallocate(buckets_, size());
-        buckets_ = nullptr;
+        // temporary disable the deallocation
+        // if (is_deallocated()) { return; }
+        // // The bucket default constructor is nothrow, so we don't have to
+        // // worry about dealing with exceptions when constructing all the
+        // // elements.
+        // static_assert(std::is_nothrow_destructible<bucket>::value, "bucket_container requires bucket to be nothrow "
+        //                                                            "destructible");
+        // clear();
+        // for (size_type i = 0; i < size(); ++i) { traits_::destroy(allocator_, &buckets_[i]); }
+        // bucket_allocator_.deallocate(buckets_, size());
+        // buckets_ = nullptr;
     }
 
     // `true` here refers to whether or not we should move

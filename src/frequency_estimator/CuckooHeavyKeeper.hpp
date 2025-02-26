@@ -71,6 +71,7 @@ class CuckooHeavyKeeper : public FrequencyEstimatorBase {
     std::array<std::vector<Bucket>, 2> m_tables;
     BOBHash64 *m_bobhash;
     std::array<double, MAX_COUNTER + 1> m_decay_expectations;
+    std::array<double, MAX_COUNTER + 1> m_min_decay_amounts;
     std::mt19937_64 rng;
     std::uniform_real_distribution<double> dist;
 

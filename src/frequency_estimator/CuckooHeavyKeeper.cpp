@@ -25,7 +25,12 @@ CuckooHeavyKeeper::~CuckooHeavyKeeper() {
 
 void CuckooHeavyKeeper::_init_decay_expectations() {
     m_decay_expectations[0] = 0;
-    for (int i = 1; i <= MAX_COUNTER; i++) { m_decay_expectations[i] = m_decay_expectations[i - 1] + std::pow(m_decay_base, i - 1); }
+    m_min_decay_amounts[0] = 0;
+
+    for (int i = 1; i <= MAX_COUNTER; i++) {
+        m_decay_expectations[i] = m_decay_expectations[i - 1] + std::pow(m_decay_base, i - 1);
+        m_min_decay_amounts[i] = m_decay_expectations[i] - m_decay_expectations[i - 1];
+    }
 }
 
 void CuckooHeavyKeeper::_generate_fingerprint_and_index(const std::string &item, fingerprint_t &fp, size_t &idx) const {
@@ -85,6 +90,7 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
 counter_t CuckooHeavyKeeper::_decay_counter(counter_t current, int weight) {
     if (current == 0) return 0;
 
+    // Handle case where weight == 1
     if (weight == 1) {
         // Original Heavy Keeper decay with probability b^(-current)
         double decay_prob = std::pow(m_decay_base, -current);
@@ -94,14 +100,24 @@ counter_t CuckooHeavyKeeper::_decay_counter(counter_t current, int weight) {
         return current;
     }
 
+    // Handle case where weight > 1 but is too small to cause any decay
+    if (weight > 1 && weight < m_min_decay_amounts[current]) {
+        // Apply probabilistic decay proportional to weight relative to min_decay_amount
+        double decay_prob = weight / m_min_decay_amounts[current];
+        double rand_prob = dist(rng);
+        if (rand_prob < decay_prob) { return current - 1; }
+        return current;
+    }
+
+    // Handle case where weight is large enough to cause C decay to 0
     if (weight >= m_decay_expectations[current]) return 0;
 
     int left = 0;
     int right = current;
 
+    // Handle case where weight is large enough to cause C decay to C - x (0 < x < C)
     // Binary search to find first position where m_decay_expectations[idx] + weight >= m_decay_expectations[current]
     //<=> m_decay_expectations[idx]  >= m_decay_expectations[current] - weight
-
     while (left < right) {
         int mid = left + (right - left) / 2;
 
@@ -225,7 +241,7 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
         return m_promotion_threshold;
     }
 
-    return weight;
+    return target_lobby.fingerprint == fp ? target_lobby.counter : 0;
 }
 
 counter_t CuckooHeavyKeeper::_estimate_impl(const std::string &item) const {

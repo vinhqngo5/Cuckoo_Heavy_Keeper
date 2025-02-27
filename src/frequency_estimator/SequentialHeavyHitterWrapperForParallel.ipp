@@ -37,6 +37,7 @@ template <typename FrequencyEstimator, typename T> void SequentialHeavyHitterWra
 
 template <typename FrequencyEstimator, typename T> void SequentialHeavyHitterWrapperForParallel<FrequencyEstimator, T>::update_threshold(int threshold) {
     this->threshold = threshold;
+    this->pq_heavy_hitters.pop_all_below(threshold);
 }
 
 template <typename FrequencyEstimator, typename T> unsigned int SequentialHeavyHitterWrapperForParallel<FrequencyEstimator, T>::estimate(const int &item) {

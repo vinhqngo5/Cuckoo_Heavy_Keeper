@@ -473,9 +473,25 @@ class SequentialExperimentAnalyzer:
       tick labels are placed close to the border, and a horizontal legend with abbreviations is
       placed at the top of the figure.
       """
+      # Font configuration dictionary
+      font_config = {
+          'family': 'serif',
+          'title_size': 10,
+          'label_size': 8,
+          'label_size_combined': 10,
+          'tick_size': 8,
+          'tick_size_combined': 8,
+          'legend_size': 8,
+          'annotation_size': 8,
+          'offset_size': 8
+      }
+      
       material_colors = load_material_colors("/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json")
       figure_path = os.path.join(self.base_path, 'figures')
       os.makedirs(figure_path, exist_ok=True)
+      
+      # Set font to serif for all text elements
+      plt.rcParams['font.family'] = font_config['family']
       
       # Define display names for parameters and metrics.
       param_display_names = {
@@ -561,17 +577,24 @@ class SequentialExperimentAnalyzer:
                   spine.set_color('black')
               
               # Set axis labels and title.
-              ax.set_xlabel(param_display_names.get(param, param), fontsize=8, labelpad=0.1)
-              ax.set_ylabel(metric_display_names.get(metric, metric), fontsize=8, labelpad=0.1)
-              ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", fontsize=8, pad=18, fontfamily='serif')
-              ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=8)
+              ax.set_xlabel(param_display_names.get(param, param), 
+                          fontsize=font_config['label_size'], labelpad=0.1, 
+                          fontfamily=font_config['family'])
+              ax.set_ylabel(metric_display_names.get(metric, metric), 
+                          fontsize=font_config['label_size'], labelpad=0.1, 
+                          fontfamily=font_config['family'])
+              ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", 
+                          fontsize=font_config['title_size'], pad=18, 
+                          fontfamily=font_config['family'])
+              ax.tick_params(axis='both', which='both', direction='in', pad=2, 
+                          labelsize=font_config['tick_size'])
               
               # Place a horizontal legend on top with more space
               ax.legend(loc='upper center',
                         bbox_to_anchor=(0.5, 1.3),
                         ncol=len(algorithms),
-                        fontsize=8,
-                        
+                        fontsize=font_config['legend_size'],
+                        prop={'family': font_config['family']},
                         frameon=False)
               
               # Add more top margin to prevent overlap
@@ -587,7 +610,7 @@ class SequentialExperimentAnalyzer:
       n_cols = 2
       n_rows = (n_plots + n_cols - 1) // n_cols
 
-      fig_combined = plt.figure(figsize=(4, 1.15 * n_rows))
+      fig_combined = plt.figure(figsize=(5.6, 1.34 * n_rows))
       gs = fig_combined.add_gridspec(n_rows, n_cols)
       plot_idx = 0
 
@@ -626,17 +649,44 @@ class SequentialExperimentAnalyzer:
                   spine.set_linewidth(0.1)
                   spine.set_color('black')
               
-              ax.set_xlabel(param_display_names.get(param, param), fontsize=7, labelpad=0.1, fontfamily='serif')
-              ax.set_ylabel(metric_display_names.get(metric, metric), fontsize=7, labelpad=0.1, fontfamily='serif')
-            #   ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", fontsize=8, pad=0.2)
-              ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=6)
+              ax.set_xlabel(param_display_names.get(param, param), 
+                          fontsize=font_config['label_size_combined'], labelpad=0.1, 
+                          fontfamily=font_config['family'])
+              ax.set_ylabel(metric_display_names.get(metric, metric), 
+                          fontsize=font_config['label_size_combined'], labelpad=0.1, 
+                          fontfamily=font_config['family'])
+              ax.tick_params(axis='both', which='both', direction='in', pad=2, 
+                          labelsize=font_config['tick_size_combined'])
               ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
-              if min(x_vals) < 0.001:  # Check if we need scientific notation
-                fmt = ScalarFormatter(useMathText=True)
-                ax.xaxis.set_major_formatter(fmt)
-                ax.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
-                ax.xaxis.offsetText.set_fontsize(6)
-                ax.xaxis.offsetText.set_position((1.05, 1.0)) 
+              
+              if param == 'THETA' and min(x_vals) < 0.001:  # Check if we need scientific notation
+                # Force display of all theta values with correct scaling
+                ax.xaxis.set_major_locator(FixedLocator([0.0001, 0.0005, 0.001, 0.005]))
+                
+                # Hide the default offset text
+                ax.xaxis.offsetText.set_visible(False)
+                
+                # Add the multiplier at the bottom right
+                ax.text(1, -0.24, '×$10^{-4}$', 
+                        transform=ax.transAxes,
+                        ha='right', va='center',
+                        fontsize=font_config['annotation_size'], 
+                        fontfamily=font_config['family'])
+                
+                # Custom formatter to show values properly scaled
+                def custom_formatter(x, pos):
+                    if x == 0.0001:
+                        return '1'
+                    elif x == 0.0005:
+                        return '5'
+                    elif x == 0.001:
+                        return '10'
+                    elif x == 0.005:
+                        return '50'
+                    else:
+                        return f'{x*1000:.1f}'  # For any other values
+                
+                ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter))
               else:
                 ax.xaxis.set_major_locator(FixedLocator(x_vals))  # Show all x values
                   
@@ -644,8 +694,7 @@ class SequentialExperimentAnalyzer:
               if max(y_vals) > 1e6:  # Check if we need scientific notation for y-axis
                   ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
                   ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-                  ax.yaxis.offsetText.set_fontsize(6)
-                #   ax.yaxis.offsetText.set_position((0, 1.0))
+                  ax.yaxis.offsetText.set_fontsize(font_config['offset_size'])
                 
               ax.grid(True, 
                 color='gray',
@@ -654,16 +703,6 @@ class SequentialExperimentAnalyzer:
                 linewidth=0.1,
                 axis='y',
                 zorder=0)  # Place grid behind plots
-
-              # Set scientific notation for the y-axis with offset on the left
-            #   formatter = ticker.ScalarFormatter(useMathText=True)
-            #   formatter.set_scientific(True)
-            #   formatter.set_powerlimits((-3, 3))  # Force scientific notation in a reasonable range
-            #   ax.yaxis.set_major_formatter(formatter)
-            #   ax.yaxis.get_offset_text().set_visible(False)  # Hide default offset on top
-            #   ax.annotate(f"{ax.yaxis.get_offset_text().get_text()}", 
-            #             xy=(0, 1), xycoords='axes fraction', 
-            #             fontsize=8, ha='left', va='bottom')
               
               plot_idx += 1
 
@@ -672,18 +711,19 @@ class SequentialExperimentAnalyzer:
       fig_combined.legend(handles, labels,
                         loc='upper center',
                         bbox_to_anchor=(0.5, 0.95),
-                        prop={'family': 'serif'},
+                        prop={'family': font_config['family']},
                         ncol=5,
-                        fontsize=8,
+                        fontsize=font_config['legend_size'],
                         frameon=False,
                         handlelength=1.5,
                         handletextpad=0,
                         columnspacing=0.5)
 
-      plt.tight_layout(pad=0.0, h_pad=-0.5, w_pad=0)
-      fig_combined.subplots_adjust(top=0.88)
+      plt.tight_layout(pad=0.0, h_pad=0.1, w_pad=0)
+      fig_combined.subplots_adjust(top=0.89, wspace=0.18)  # Added wspace for consistent column spacing
       combined_filename = "combined_metrics.pdf"
-      fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', bbox_inches='tight', pad_inches=0.005, dpi=800)
+      fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', 
+                          bbox_inches='tight', pad_inches=0.03, dpi=800)
       plt.close(fig_combined)
 # Example usage:
 

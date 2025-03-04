@@ -102,6 +102,21 @@ class LatencyExperimentAnalyzer:
         """Create latency visualization for multiple machines using Matplotlib."""
         material_colors = load_material_colors("./notebooks/material-colors.json")
         
+        # Font configuration dictionary
+        font_config = {
+            'family': 'serif',
+            'title_size': 10,
+            'label_size': 10,
+            'tick_size': 8,
+            'tick_size_inset': 6,
+            'tick_label_inset': 6,
+            'annotation_size': 6,
+            'legend_size': 8,
+            'machine_name_size': 10,
+            'inset_text_size': 6
+        }
+        plt.rcParams['font.family'] = font_config['family']
+        
         # Define query rates with corrected labels
         query_rates = ['0.000000', '1.000000', '10.000000']
         query_rate_labels = {'0.000000': '0%', '1.000000': '0.01%', '10.000000': '0.1%'}
@@ -131,10 +146,10 @@ class LatencyExperimentAnalyzer:
         }
         
         # Set font to serif for all text elements
-        plt.rcParams['font.family'] = 'serif'
+        plt.rcParams['font.family'] = font_config['family']
         
         # Create figure with 3x2 subplots (3 rows for query rates, 2 columns for machines)
-        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.5), sharex=False)
+        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.8), sharex=False)
         
         # Make sure to include all thread values
         thread_values = sorted([int(x) for x in self.fixed_params['NUM_THREADS']])
@@ -210,11 +225,11 @@ class LatencyExperimentAnalyzer:
                                     markerfacecolor='none', markersize=4,
                                     linewidth=1.2, color=data["color"])
                             
-                            # Add markers for points that were capped
-                            for i, (x, y) in enumerate(zip(data["x"], data["y"])):
-                                if y > 300:
-                                    axins.scatter(x, 300, marker='^', s=20, color=data["color"], 
-                                                alpha=0.7, zorder=10)
+                            # # Add markers for points that were capped
+                            # for i, (x, y) in enumerate(zip(data["x"], data["y"])):
+                            #     if y > 300:
+                            #         axins.scatter(x, 300, marker='^', s=20, color=data["color"], 
+                            #                     alpha=0.7, zorder=10)
                     
                     # Set fixed limits for the inset - focus on threads 60-70 and latency 0-300
                     axins.set_xlim(60, 70)
@@ -222,49 +237,53 @@ class LatencyExperimentAnalyzer:
                     
                     # Add more yticks to the inset
                     axins.set_yticks([0, 100, 200, 300])
-                    axins.set_yticklabels(['0', '100', '200', '300'], fontsize=5)
+                    axins.set_yticklabels(['0', '100', '200', '300'], fontsize=font_config['tick_label_inset'])
 
                     # Format the inset
-                    axins.tick_params(axis='both', which='both', labelsize=6)
+                    axins.tick_params(axis='both', which='both', labelsize=font_config['tick_size_inset'])
                     axins.grid(True, alpha=0.2, linestyle='-', linewidth=0.1)
                     
-                    # Add y-axis label indicating cap
-                    axins.text(0.02, 0.98, "≤300μs", transform=axins.transAxes,
-                            fontsize=6, fontfamily='serif', va='top')
+                    # # Add y-axis label indicating cap
+                    # axins.text(0.02, 0.98, "≤300μs", transform=axins.transAxes,
+                    #         fontsize=font_config['inset_text_size'], fontfamily=font_config['family'], va='top')
                     
                     # Draw connecting lines between inset and main plot with dotted style
                     mark_inset(ax, axins, loc1=3, loc2=4, fc="none", ec="0.5", lw=0.1, ls=":")
                 
                 # Set title and other styling (as before)
                 ax.set_title(f"HH-Query Rate = {query_rate_labels[query_rate]}", 
-                        fontsize=9, fontfamily='serif', pad=2)
+                        fontsize=font_config['title_size'], fontfamily=font_config['family'], pad=2)
                 
                 # Set y-axis label for all subplots
-                ax.set_ylabel('Latency (μs)', fontsize=8, fontfamily='serif', labelpad=1)
+                ax.set_ylabel('Latency (μs)', fontsize=font_config['label_size'], 
+                            fontfamily=font_config['family'], labelpad=1)
                 
                 # Style the subplot
                 for spine in ax.spines.values():
                     spine.set_visible(True)
-                    spine.set_linewidth(0.5)
+                    spine.set_linewidth(0.1)
                     spine.set_color('black')
                 
                 # Explicitly set x-ticks on all subplots
                 ax.set_xticks(thread_values)
-                ax.set_xticklabels([str(x) for x in thread_values], fontsize=7)
-                ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=7)
+                ax.set_xticklabels([str(x) for x in thread_values], fontsize=font_config['tick_size'])
+                ax.tick_params(axis='both', which='both', direction='in', 
+                            pad=2, labelsize=font_config['tick_size'])
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
                 
                 ax.grid(True, color='gray', alpha=0.2, linestyle='-', linewidth=0.1, axis='y', zorder=0)
                 
                 # Set x-axis label for all subplots
-                ax.set_xlabel('Number of Threads', fontsize=8, fontfamily='serif', labelpad=1)
+                ax.set_xlabel('Number of Threads', fontsize=font_config['label_size'], 
+                            fontfamily=font_config['family'], labelpad=1)
         
         # Add machine names as a super title for each column
         for machine_idx, machine_name in enumerate(results_by_machine.keys()):
             fig.text(0.25 + 0.5*machine_idx, 0.89, machine_name, 
-                    ha='center', fontsize=10, fontfamily='serif')
+                    ha='center', fontsize=font_config['machine_name_size'], 
+                    fontfamily=font_config['family'])
         
-        # Organize legend by algorithm pairs (-q and -i versions together) - NEW: similar to throughput
+        # Organize legend by algorithm pairs (-q and -i versions together)
         handles, labels = axs[0, 0].get_legend_handles_labels()
         
         # Reorganize handles and labels by algorithm
@@ -289,23 +308,23 @@ class LatencyExperimentAnalyzer:
                 loc='upper center',
                 bbox_to_anchor=(0.5, 1.03),
                 ncol=len(alg_pairs),  # One column per algorithm
-                fontsize=7,
+                fontsize=font_config['legend_size'],
                 frameon=False,
                 handlelength=1.5,
                 handletextpad=0.5,
                 columnspacing=0.6,
-                prop={'family': 'serif'})
+                prop={'family': font_config['family']})
         
         # Adjust layout
         plt.tight_layout(pad=0.0, h_pad=0.9, w_pad=0.0)
-        plt.subplots_adjust(top=0.85)  # Make more room for the legend
+        plt.subplots_adjust(top=0.85, wspace=0.21, hspace=0.56)  # Added wspace for column spacing consistency
         
         # Save figure
         figure_path = os.path.join(self.base_paths[0], 'figures')
         os.makedirs(figure_path, exist_ok=True)
-        filename =  f"par_latency_comparison_all.pdf"
+        filename = f"par_latency_comparison_all.pdf"
         plt.savefig(os.path.join(figure_path, filename), format='pdf', 
-                  bbox_inches='tight', pad_inches=0.03, dpi=2000)
+                bbox_inches='tight', pad_inches=0.03, dpi=2000)
         plt.close(fig)
 
 
@@ -342,8 +361,8 @@ for idx, base_path in enumerate(base_paths):
     machine_name = machine_names[idx]
     cache_file = os.path.join(base_path, 'parallel_latency_data.json')
     
-    # if os.path.exists(cache_file):
-    if False:
+    if os.path.exists(cache_file):
+    # if False:
         print(f"Loading cached results for {machine_name}...")
         with open(cache_file, 'r') as f:
             results_by_machine[machine_name] = [dict(r) for r in json.load(f)]

@@ -5,6 +5,9 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.ticker import MaxNLocator
 from typing import List, Dict, Set, Any
+from matplotlib.ticker import MaxNLocator, LinearLocator, FixedLocator
+from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+
 
 def load_material_colors(filepath='material-colors.json'):
     """Load material design colors from JSON file."""
@@ -100,6 +103,20 @@ class ThroughputExperimentAnalyzer:
         """Create throughput visualization for multiple machines using Matplotlib."""
         material_colors = load_material_colors("./notebooks/material-colors.json")
         
+        # Font configuration dictionary
+        font_config = {
+            'family': 'serif',
+            'title_size': 10,
+            'label_size': 10,
+            'tick_size': 8, 
+            'annotation_size': 6,
+            'legend_size': 8,
+            'machine_name_size': 10,
+            'offset_size': 8
+        }
+        plt.rcParams['font.family'] = font_config['family']
+
+
         # Define query rates with corrected labels
         query_rates = ['0.000000', '1.000000', '10.000000']
         query_rate_labels = {'0.000000': '0%', '1.000000': '0.01%', '10.000000': '0.1%'}
@@ -129,10 +146,10 @@ class ThroughputExperimentAnalyzer:
         }
         
         # Set font to serif for all text elements
-        plt.rcParams['font.family'] = 'serif'
+        plt.rcParams['font.family'] = font_config['family']
         
         # Create figure with 3x2 subplots (3 rows for query rates, 2 columns for machines)
-        fig, axs = plt.subplots(3, 2, figsize=(5.6, 6), sharex=False)
+        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.8), sharex=False)
         
         # Make sure to include all thread values including 2 and 5
         thread_values = sorted([int(x) for x in self.fixed_params['NUM_THREADS']])
@@ -143,6 +160,7 @@ class ThroughputExperimentAnalyzer:
             # Process each query rate (row)
             for row_idx, query_rate in enumerate(query_rates):
                 ax = axs[row_idx, machine_idx]
+                speedup_annotations = []
                 
                 # Process each algorithm
                 for alg in sorted(set(r['ALGORITHM'] for r in results)):
@@ -165,7 +183,7 @@ class ThroughputExperimentAnalyzer:
                             
                             x_values = [int(r['NUM_THREADS']) for r in sorted_results]
                             # Values are already in Mops, no need to divide
-                            y_values = [float(r['throughput']) for r in sorted_results]
+                            y_values = [float(r['throughput']) *1e6 for r in sorted_results]
                             
                             # Create label with the format m{algoname}-{design}
                             # Only show labels in the legend for the first row, first column
@@ -179,23 +197,58 @@ class ThroughputExperimentAnalyzer:
                                         markerfacecolor='none', markersize=6,
                                         linewidth=1.5, color=color, 
                                         label=label)
-                            
-                            # Add speedup annotation for the last point
-                            if len(y_values) > 1:
-                                first_val = y_values[0]
-                                last_val = y_values[-1]
-                                if first_val > 0:  # Avoid division by zero
-                                    speedup = last_val / first_val
-                                    
-                                    # Create the annotation
-                                    ax.annotate(f"{speedup:.1f}×", 
-                                            xy=(x_values[-1], y_values[-1]),
-                                            xytext=(5, 0),  # Fixed offset to the right
-                                            textcoords="offset points",
-                                            fontsize=6, fontfamily='serif',
-                                            ha='left', va='center',
-                                            color=color)
                 
+                        if matching_results and len(y_values) > 1:
+                            first_val = y_values[0]
+                            last_val = y_values[-1]
+                            if first_val > 0:  # Avoid division by zero
+                                speedup = last_val / first_val
+                                speedup_annotations.append({
+                                    'x': x_values[-1],
+                                    'y': y_values[-1],
+                                    'speedup': speedup,
+                                    'color': color,
+                                    'text': f"{speedup:.1f}×",
+                                    'algo': f"{algorithm_display_names[alg]}-{design_suffix}"
+                                })
+
+                # After processing all algorithms, add staggered speedup annotations
+                if speedup_annotations:
+                    # Sort annotations by y-value (highest to lowest) instead of speedup
+                    speedup_annotations.sort(key=lambda x: x['y'], reverse=True)
+                    
+                    # Get maximum x value and y range
+                    max_x = max(ann['x'] for ann in speedup_annotations)
+                    y_range = ax.get_ylim()
+                    y_max = y_range[1]
+                    y_min = y_range[0]
+                    available_height = y_max - y_min
+                    
+                    # Calculate fixed positions for annotations
+                    # Position them in the right 15% of the plot, evenly spaced
+                    x_pos = max_x * 1.03  # Horizontal position (slightly right of the plot)
+                    
+                    # Place annotations with fixed spacing in a neat column
+                    annotation_count = len(speedup_annotations)
+                    
+                    # Calculate spacing to distribute evenly across 80% of the y-axis
+                    spacing = (available_height * 0.8) / max(1, annotation_count - 1) if annotation_count > 1 else 0
+                    start_y = y_max - (available_height * 0.1)  # Start at 10% from the top
+                    
+                    # Add all annotations
+                    for i, ann in enumerate(speedup_annotations):
+                        y_pos = start_y - (i * spacing)
+                        
+                        # Add annotation without algorithm name, just the speedup value
+                        ax.annotate(f"{ann['text']}",  # Removed algorithm name
+                                xy=(x_pos, y_pos),
+                                xytext=(0, 0),
+                                textcoords="offset points",
+                                fontsize=font_config['annotation_size'], 
+                                fontfamily=font_config['family'],
+                                ha='left', va='center',
+                                color=ann['color'])
+                            
                 # Adjust x-axis limits to make room for annotations
                 # Find max thread value for this query rate
                 max_thread_values = []
@@ -209,32 +262,42 @@ class ThroughputExperimentAnalyzer:
                 
                 # Set title with HH-Query rate for each subplot
                 ax.set_title(f"HH-Query Rate = {query_rate_labels[query_rate]}", 
-                        fontsize=9, fontfamily='serif', pad=2)
+                        fontsize=font_config['title_size'], fontfamily=font_config['family'], pad=2)
                 
                 # Set y-axis label for all subplots
-                ax.set_ylabel('Throughput (Mops)', fontsize=8, fontfamily='serif', labelpad=1)
+                ax.set_ylabel('Throughput', fontsize=font_config['label_size'], 
+                            fontfamily=font_config['family'], labelpad=1)
+                formatter = ScalarFormatter(useMathText=True)
+                formatter.set_powerlimits((7,7))  # Force 10^7
+                ax.yaxis.set_major_formatter(formatter)
+                ax.yaxis.offsetText.set_fontsize(font_config['offset_size'])
+                # ax.yaxis.offsetText.set_position((0, 1.05))
                 
                 # Style the subplot
                 for spine in ax.spines.values():
                     spine.set_visible(True)
-                    spine.set_linewidth(0.5)
+                    spine.set_linewidth(0.1)
                     spine.set_color('black')
                 
                 # Explicitly set x-ticks on all subplots
                 ax.set_xticks(thread_values)
-                ax.set_xticklabels([str(x) for x in thread_values], fontsize=7)
-                ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=7)
+                ax.set_xticklabels([str(x) for x in thread_values], 
+                                fontsize=font_config['tick_size'])
+                ax.tick_params(axis='both', which='both', direction='in', 
+                            pad=2, labelsize=font_config['tick_size'])
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
                 
                 ax.grid(True, color='gray', alpha=0.2, linestyle='-', linewidth=0.1, axis='y', zorder=0)
                 
                 # Set x-axis label for all subplots
-                ax.set_xlabel('Number of Threads', fontsize=8, fontfamily='serif', labelpad=1)
+                ax.set_xlabel('Number of Threads', fontsize=font_config['label_size'], 
+                            fontfamily=font_config['family'], labelpad=1)
         
         # Add machine names as a super title for each column
         for machine_idx, machine_name in enumerate(results_by_machine.keys()):
             fig.text(0.25 + 0.5*machine_idx, 0.89, machine_name, 
-                    ha='center', fontsize=10, fontfamily='serif')
+                    ha='center', fontsize=font_config['machine_name_size'], 
+                    fontfamily=font_config['family'])
         
         # Organize legend by algorithm pairs (-q and -i versions together)
         handles, labels = axs[0, 0].get_legend_handles_labels()
@@ -261,23 +324,23 @@ class ThroughputExperimentAnalyzer:
                 loc='upper center',
                 bbox_to_anchor=(0.5, 1.03),  # Move legend higher
                 ncol=len(alg_pairs),  # One column per algorithm
-                fontsize=7,
+                fontsize=font_config['legend_size'],
                 frameon=False,
                 handlelength=1.5,
                 handletextpad=0.5,
                 columnspacing=0.6,
-                prop={'family': 'serif'})
+                prop={'family': font_config['family']})
         
         # Adjust layout
         plt.tight_layout(pad=0.0, h_pad=0.9, w_pad=0.0)
-        plt.subplots_adjust(top=0.85)  # Make more room for the legend
+        plt.subplots_adjust(top=0.85, wspace=0.18)
         
         # Save figure
         figure_path = os.path.join(self.base_paths[0], 'figures')
         os.makedirs(figure_path, exist_ok=True)
         filename = f"par_throughput_comparison.pdf"
         plt.savefig(os.path.join(figure_path, filename), format='pdf', 
-                bbox_inches='tight', pad_inches=0.03, dpi=2000)
+                bbox_inches='tight', pad_inches=0.03, dpi=5000)
         plt.close(fig)
 
 

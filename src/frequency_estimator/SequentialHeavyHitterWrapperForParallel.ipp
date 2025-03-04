@@ -77,7 +77,7 @@ const BoundedKeyValuePriorityQueue<T> &SequentialHeavyHitterWrapperForParallel<F
         // Iterate through space saving array
         for (const auto &item : frequency_estimator) {
             int freq = item->count;
-            if (freq >= theta) {
+            if (freq >= threshold) {
                 if constexpr (std::is_same_v<T, std::string>) {
                     pq_heavy_hitters.push(item->name, freq);
                 } else {

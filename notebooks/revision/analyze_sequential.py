@@ -363,7 +363,7 @@ class SequentialExperimentAnalyzer:
             'ARE': 'log<sub>10</sub>(ARE)',
             'AAE': 'log<sub>10</sub>(AAE)',
             'ExecutionTime': 'Execution Time (s)',
-            'Throughput': 'Throughput (Mops)',
+            'Throughput': 'Throughput',
             'Precision': 'Precision',
             'Recall': 'Recall',
             'F1Score': 'F1 Score'
@@ -487,7 +487,7 @@ class SequentialExperimentAnalyzer:
           'ARE': 'log10(ARE)',
           'AAE': 'log10(AAE)',
           'ExecutionTime': 'Execution Time (s)',
-          'Throughput': 'Throughput (Mops)',
+          'Throughput': 'Throughput',
           'Precision': 'Precision',
           'Recall': 'Recall',
           'F1Score': 'F1 Score'
@@ -550,6 +550,7 @@ class SequentialExperimentAnalyzer:
                       ax.plot(x_vals, y_vals,
                               label=algorithm_display_names.get(alg, alg),
                               color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
+                              markerfacecolor='none',
                               linewidth=2, markersize=6)
                       
               
@@ -562,7 +563,7 @@ class SequentialExperimentAnalyzer:
               # Set axis labels and title.
               ax.set_xlabel(param_display_names.get(param, param), fontsize=8, labelpad=0.1)
               ax.set_ylabel(metric_display_names.get(metric, metric), fontsize=8, labelpad=0.1)
-              ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", fontsize=8, pad=18)
+              ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", fontsize=8, pad=18, fontfamily='serif')
               ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=8)
               
               # Place a horizontal legend on top with more space
@@ -586,10 +587,11 @@ class SequentialExperimentAnalyzer:
       n_cols = 2
       n_rows = (n_plots + n_cols - 1) // n_cols
 
-      fig_combined = plt.figure(figsize=(4, 1.2 * n_rows))
+      fig_combined = plt.figure(figsize=(4, 1.15 * n_rows))
       gs = fig_combined.add_gridspec(n_rows, n_cols)
       plot_idx = 0
 
+       
       for metric in self.metrics:
           for param in self.varying_params:
               row = plot_idx // n_cols
@@ -614,6 +616,7 @@ class SequentialExperimentAnalyzer:
                       color, linestyle, marker = decorations.get(alg, ('gray', '-', 'o'))
                       ax.plot(x_vals, y_vals,
                               label=algorithm_display_names.get(alg, alg),
+                              markerfacecolor='none',
                               color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
                               linewidth=2, markersize=4)
               
@@ -623,8 +626,8 @@ class SequentialExperimentAnalyzer:
                   spine.set_linewidth(0.1)
                   spine.set_color('black')
               
-              ax.set_xlabel(param_display_names.get(param, param), fontsize=7, labelpad=0.1)
-              ax.set_ylabel(metric_display_names.get(metric, metric), fontsize=7, labelpad=0.1)
+              ax.set_xlabel(param_display_names.get(param, param), fontsize=7, labelpad=0.1, fontfamily='serif')
+              ax.set_ylabel(metric_display_names.get(metric, metric), fontsize=7, labelpad=0.1, fontfamily='serif')
             #   ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", fontsize=8, pad=0.2)
               ax.tick_params(axis='both', which='both', direction='in', pad=2, labelsize=6)
               ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
@@ -668,23 +671,24 @@ class SequentialExperimentAnalyzer:
       handles, labels = ax.get_legend_handles_labels()
       fig_combined.legend(handles, labels,
                         loc='upper center',
-                        bbox_to_anchor=(0.5, 0.98),
+                        bbox_to_anchor=(0.5, 0.95),
+                        prop={'family': 'serif'},
                         ncol=5,
                         fontsize=8,
                         frameon=False,
                         handlelength=1.5,
-                        handletextpad=0.4,
+                        handletextpad=0,
                         columnspacing=0.5)
 
-      plt.tight_layout(pad=0.5, h_pad=-0.1, w_pad=0.2)
-      fig_combined.subplots_adjust(top=0.9)
+      plt.tight_layout(pad=0.0, h_pad=-0.5, w_pad=0)
+      fig_combined.subplots_adjust(top=0.88)
       combined_filename = "combined_metrics.pdf"
-      fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', bbox_inches='tight')
+      fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', bbox_inches='tight', pad_inches=0.005, dpi=800)
       plt.close(fig_combined)
 # Example usage:
 
 # base_path = "../experiments/sequential"
-base_path = "./experiments/sequential/DATASET=zipf"
+base_path = "./experiments_20250218/sequential/DATASET=CAIDA_L"
 fixed_params = {
     # 'DIST_PARAM': {'0.8', '1', '1.2', '1.4', '1.6'},
     # 'DATASET': {'CAIDA_L'},

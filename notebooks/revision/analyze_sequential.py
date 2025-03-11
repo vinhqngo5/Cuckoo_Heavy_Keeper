@@ -467,199 +467,461 @@ class SequentialExperimentAnalyzer:
                 fig.write_image(os.path.join(figure_path, f'seq_{filename}.pdf'))
 
     def save_metric_figures_3(self, results_by_param: Dict[str, List[Dict[str, Any]]]):
-      """
-      Save individual line chart figures for each metric-parameter combination using Matplotlib.
-      Each algorithm gets its own decoration, axes have a solid border without extra dashes,
-      tick labels are placed close to the border, and a horizontal legend with abbreviations is
-      placed at the top of the figure.
-      """
-      # Font configuration dictionary
-      font_config = {
-          'family': 'serif',
-          'title_size': 10,
-          'label_size': 8,
-          'label_size_combined': 10,
-          'tick_size': 8,
-          'tick_size_combined': 8,
-          'legend_size': 8,
-          'annotation_size': 8,
-          'offset_size': 8
-      }
-      
-      material_colors = load_material_colors("/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json")
-      figure_path = os.path.join(self.base_path, 'figures')
-      os.makedirs(figure_path, exist_ok=True)
-      
-      # Set font to serif for all text elements
-      plt.rcParams['font.family'] = font_config['family']
-      
-      # Define display names for parameters and metrics.
-      param_display_names = {
-          'DIST_PARAM': 'Skewness',
-          'BASE_UNIT': 'Memory(KB)',
-          'THETA': 'φ'
-      }
-      metric_display_names = {
-          'ARE': 'log10(ARE)',
-          'AAE': 'log10(AAE)',
-          'ExecutionTime': 'Execution Time (s)',
-          'Throughput': 'Throughput',
-          'Precision': 'Precision',
-          'Recall': 'Recall',
-          'F1Score': 'F1 Score'
-      }
-      
-      # Define decorations per algorithm: (color, linestyle, marker)
-      decorations = {
-          'CountMinSketch': ('green', '-', 'o'),
-          'AugmentedSketch': ('orange', '--', 's'),
-          'HeapHashMapSpaceSavingV2': ('blue', '-.', '^'),
-          'HeavyKeeper': ('red', ':', 'D'),
-          'CuckooHeavyKeeper': ('purple', '-', 'x')
-      }
-      # Abbreviated names for the legend.
-      algorithm_display_names = {
-          'CountMinSketch': 'CMS',
-          'AugmentedSketch': 'AS',
-          'HeapHashMapSpaceSavingV2': 'SS',
-          'HeavyKeeper': 'HK',
-          'CuckooHeavyKeeper': 'CHK'
-      }
-      algorithms = ['CountMinSketch', 'AugmentedSketch', 'HeapHashMapSpaceSavingV2', 'HeavyKeeper', 'CuckooHeavyKeeper']
-      
-      # Define metric transform functions.
-      metric_transforms = {
-          'ARE': lambda x: np.log10(x) if x > 0 else -6,
-          'AAE': lambda x: np.log10(x) if x > 0 else -6,
-          'ExecutionTime': lambda x: x,
-          'Throughput': lambda x: x,
-          'Precision': lambda x: x,
-          'Recall': lambda x: x,
-          'F1Score': lambda x: x
-      }
-      
-      # Loop over each metric and each varying parameter.
-      for metric in self.metrics:
-          for param in self.varying_params:
-              # Increase figure height to accommodate legend
-              fig, ax = plt.subplots(figsize=(3, 1.7))
-              
-              # Get results for the current varying parameter.
-              param_results = results_by_param[param]
-              # Get sorted unique parameter values (as floats for proper ordering).
-              param_values = sorted({float(r[param]) for r in param_results})
-              
-              for alg in algorithms:
-                  x_vals = []
-                  y_vals = []
-                  # For each parameter value, collect the corresponding metric value for this algorithm.
-                  for val in param_values:
-                      matching_results = [r[metric] for r in param_results 
-                                          if float(r[param]) == val and r['FrequencyEstimator'] == alg]
-                      if matching_results:
-                          x_vals.append(val)
-                          y_mean = np.mean(matching_results)
-                          y_vals.append(metric_transforms[metric](y_mean))
-                  
-                  if x_vals and y_vals:
-                      color, linestyle, marker = decorations.get(alg, ('gray', '-', 'o'))
-                      ax.plot(x_vals, y_vals,
-                              label=algorithm_display_names.get(alg, alg),
-                              color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
-                              markerfacecolor='none',
-                              linewidth=2, markersize=6)
-                      
-              
-              # Customize axes: add a solid border and adjust tick parameters.
-              for spine in ax.spines.values():
-                  spine.set_visible(True)
-                  spine.set_linewidth(1.5)
-                  spine.set_color('black')
-              
-              # Set axis labels and title.
-              ax.set_xlabel(param_display_names.get(param, param), 
-                          fontsize=font_config['label_size'], labelpad=0.1, 
-                          fontfamily=font_config['family'])
-              ax.set_ylabel(metric_display_names.get(metric, metric), 
-                          fontsize=font_config['label_size'], labelpad=0.1, 
-                          fontfamily=font_config['family'])
-              ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", 
-                          fontsize=font_config['title_size'], pad=18, 
-                          fontfamily=font_config['family'])
-              ax.tick_params(axis='both', which='both', direction='in', pad=2, 
-                          labelsize=font_config['tick_size'])
-              
-              # Place a horizontal legend on top with more space
-              ax.legend(loc='upper center',
+        """
+        Save individual line chart figures for each metric-parameter combination using Matplotlib.
+        Each algorithm gets its own decoration, axes have a solid border without extra dashes,
+        tick labels are placed close to the border, and a horizontal legend with abbreviations is
+        placed at the top of the figure.
+        """
+        # Font configuration dictionary
+        font_config = {
+            'family': 'serif',
+            'title_size': 10,
+            'label_size': 8,
+            'label_size_combined': 10,
+            'tick_size': 8,
+            'tick_size_combined': 8,
+            'legend_size': 8,
+            'annotation_size': 6,  # Reduced size for annotations
+            'offset_size': 8
+        }
+        
+        material_colors = load_material_colors("/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json")
+        figure_path = os.path.join(self.base_path, 'figures')
+        os.makedirs(figure_path, exist_ok=True)
+        
+        # Set font to serif for all text elements
+        plt.rcParams['font.family'] = font_config['family']
+        
+        # Define display names for parameters and metrics
+        param_display_names = {
+            'DIST_PARAM': 'Skewness',
+            'BASE_UNIT': 'Memory(KB)',
+            'THETA': 'φ'
+        }
+        metric_display_names = {
+            'ARE': 'log10(ARE)',
+            'AAE': 'log10(AAE)',
+            'ExecutionTime': 'Execution Time (s)',
+            'Throughput': 'Throughput',
+            'Precision': 'Precision',
+            'Recall': 'Recall',
+            'F1Score': 'F1 Score'
+        }
+        
+        # Define decorations per algorithm: (color, linestyle, marker)
+        decorations = {
+            'CountMinSketch': ('green', '-', 'o'),
+            'AugmentedSketch': ('orange', '--', 's'),
+            'HeapHashMapSpaceSavingV2': ('blue', '-.', '^'),
+            'HeavyKeeper': ('red', ':', 'D'),
+            'CuckooHeavyKeeper': ('purple', '-', 'x')
+        }
+        # Abbreviated names for the legend
+        algorithm_display_names = {
+            'CountMinSketch': 'CMS',
+            'AugmentedSketch': 'AS',
+            'HeapHashMapSpaceSavingV2': 'SS',
+            'HeavyKeeper': 'HK',
+            'CuckooHeavyKeeper': 'CHK'
+        }
+        algorithms = ['CountMinSketch', 'AugmentedSketch', 'HeapHashMapSpaceSavingV2', 'HeavyKeeper', 'CuckooHeavyKeeper']
+        
+        # Define metric transform functions
+        metric_transforms = {
+            'ARE': lambda x: np.log10(x) if x > 0 else -6,
+            'AAE': lambda x: np.log10(x) if x > 0 else -6,
+            'ExecutionTime': lambda x: x,
+            'Throughput': lambda x: x,
+            'Precision': lambda x: x,
+            'Recall': lambda x: x,
+            'F1Score': lambda x: x
+        }
+        
+        # Helper function to format improvement values
+        def format_improvement(value):
+            if value >= 100:
+                return f"{int(value)}"
+            elif abs(value - round(value)) < 0.05:  # If very close to an integer
+                return f"{int(round(value))}"
+            else:
+                return f"{value:.1f}"
+        
+        # Loop over each metric and each varying parameter for individual plots
+        for metric in self.metrics:
+            for param in self.varying_params:
+                # Increase figure height to accommodate legend
+                fig, ax = plt.subplots(figsize=(3, 1.7))
+                
+                # Get results for the current varying parameter.
+                param_results = results_by_param[param]
+                # Get sorted unique parameter values (as floats for proper ordering).
+                param_values = sorted({float(r[param]) for r in param_results})
+                
+                # Collect data for all algorithms to calculate improvements
+                alg_data = {}
+                for alg in algorithms:
+                    x_vals = []
+                    y_vals = []
+                    raw_vals = []  # Store raw values (before transformation)
+                    
+                    for val in param_values:
+                        matching_results = [r[metric] for r in param_results 
+                                            if float(r[param]) == val and r['FrequencyEstimator'] == alg]
+                        if matching_results:
+                            x_vals.append(val)
+                            y_mean = np.mean(matching_results)
+                            raw_vals.append(y_mean)  # Store raw value
+                            y_vals.append(metric_transforms[metric](y_mean))
+                    
+                    if x_vals and y_vals:
+                        color, linestyle, marker = decorations.get(alg, ('gray', '-', 'o'))
+                        ax.plot(x_vals, y_vals,
+                                label=algorithm_display_names.get(alg, alg),
+                                color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
+                                markerfacecolor='none',
+                                linewidth=2, markersize=6)
+                        
+                        alg_data[alg] = {"x": x_vals, "y": y_vals, "raw": raw_vals, "color": material_colors[color]["500"]}
+                            
+                # Prepare annotations for performance improvements
+                if alg_data:
+                    # For each algorithm, collect improvements across all parameter values
+                    alg_improvements = {}
+                    
+                    for val_idx, val in enumerate(param_values):
+                        # Find all algorithms that have data for this parameter value
+                        val_raw_values = {}
+                        for alg, data in alg_data.items():
+                            if val in data["x"]:
+                                idx = data["x"].index(val)
+                                val_raw_values[alg] = data["raw"][idx]
+                        
+                        if val_raw_values:
+                            # For ARE, lowest is best
+                            if metric == "ARE":
+                                worst_val = max(val_raw_values.values())
+                                best_metric_is_higher = False
+                            else:
+                                # For other metrics, highest is best
+                                worst_val = min(val_raw_values.values())
+                                best_metric_is_higher = True
+                            
+                            # Calculate improvements for each algorithm at this parameter value
+                            for alg, raw_val in val_raw_values.items():
+                                if worst_val > 0:  # Avoid division by zero
+                                    if best_metric_is_higher:
+                                        improvement = raw_val / worst_val
+                                    else:
+                                        improvement = worst_val / raw_val
+                                    
+                                    if alg not in alg_improvements:
+                                        alg_improvements[alg] = []
+                                    alg_improvements[alg].append(improvement)
+                    
+                    # Create annotation data for each algorithm
+                    annotation_data = []
+                    last_param_val = max(param_values)
+                    
+                    for alg, improvements in alg_improvements.items():
+                        if improvements and alg in alg_data:
+                            min_improvement = min(improvements)
+                            max_improvement = max(improvements)
+                            avg_improvement = sum(improvements) / len(improvements)
+                            
+                            # Format as range if min and max differ significantly
+                            if abs(max_improvement - min_improvement) < 0.1:  # Very close, just use max
+                                improvement_text = f"{format_improvement(max_improvement)}×"
+                            else:
+                                min_text = format_improvement(min_improvement)
+                                max_text = format_improvement(max_improvement)
+                                improvement_text = f"{min_text}-{max_text}×"
+                            
+                            # Get the y-position for the final point for positioning the annotation
+                            if last_param_val in alg_data[alg]["x"]:
+                                idx = alg_data[alg]["x"].index(last_param_val)
+                                y_val = alg_data[alg]["y"][idx]
+                                
+                                annotation_data.append({
+                                    "x": last_param_val,
+                                    "y": y_val,
+                                    "avg_improvement": avg_improvement,  # For sorting
+                                    "text": improvement_text,
+                                    "color": alg_data[alg]["color"]
+                                })
+                    
+                    # Sort annotations by average improvement
+                    # For ARE, lower is better so sort ascending by improvement
+                    reverse_sort = metric != "ARE"
+                    annotation_data.sort(key=lambda x: x["avg_improvement"], reverse=reverse_sort)
+                    
+                    # Add annotations at appropriate positions
+                    if annotation_data:
+                        # Get y-axis range for positioning
+                        y_range = ax.get_ylim()
+                        available_height = y_range[1] - y_range[0]
+                        
+                        # Calculate spacing to distribute evenly across 80% of the y-axis
+                        annotation_count = len(annotation_data)
+                        spacing = (available_height * 0.8) / max(1, annotation_count - 1) if annotation_count > 1 else 0
+                        
+                        # Start position depends on metric type
+                        if metric == "ARE":  # Lower is better
+                            start_y = y_range[0] + (available_height * 0.1)  # Start at 10% from bottom
+                        else:  # Higher is better
+                            start_y = y_range[1] - (available_height * 0.1)  # Start at 10% from top
+                        
+                        # Position for annotations, slightly right of the plot
+                        x_pos = last_param_val * 1.05
+                        
+                        # Adjust x-axis limit to make room
+                        # Find longest annotation text
+                        max_text_length = max(len(ann["text"]) for ann in annotation_data)
+                        scaling_factor = 1.15 + (max_text_length * 0.015) 
+                        scaling_factor = min(max(scaling_factor, 1.15), 1.35)
+                        ax.set_xlim(right=last_param_val * scaling_factor)
+                        
+                        # Add annotations
+                        for i, ann in enumerate(annotation_data):
+                            if metric == "ARE":
+                                y_pos = start_y + (i * spacing)  # Move bottom to top
+                            else:
+                                y_pos = start_y - (i * spacing)  # Move top to bottom
+                                
+                            ax.annotate(ann["text"],
+                                        xy=(x_pos, y_pos),
+                                        xytext=(0, 0),
+                                        textcoords="offset points",
+                                        fontsize=font_config['annotation_size'],
+                                        fontfamily=font_config['family'],
+                                        ha='left', va='center',
+                                        color=ann["color"])
+                
+                # Customize axes: add a solid border and adjust tick parameters
+                for spine in ax.spines.values():
+                    spine.set_visible(True)
+                    spine.set_linewidth(1.5)
+                    spine.set_color('black')
+                
+                # Set axis labels and title
+                ax.set_xlabel(param_display_names.get(param, param), 
+                            fontsize=font_config['label_size'], labelpad=0.1, 
+                            fontfamily=font_config['family'])
+                ax.set_ylabel(metric_display_names.get(metric, metric), 
+                            fontsize=font_config['label_size'], labelpad=0.1, 
+                            fontfamily=font_config['family'])
+                ax.set_title(f"{metric_display_names.get(metric, metric)} vs {param_display_names.get(param, param)}", 
+                            fontsize=font_config['title_size'], pad=18, 
+                            fontfamily=font_config['family'])
+                ax.tick_params(axis='both', which='both', direction='in', pad=2, 
+                            labelsize=font_config['tick_size'])
+                
+                # Place a horizontal legend on top with more space
+                ax.legend(loc='upper center',
                         bbox_to_anchor=(0.5, 1.3),
                         ncol=len(algorithms),
                         fontsize=font_config['legend_size'],
                         prop={'family': font_config['family']},
                         frameon=False)
-              
-              # Add more top margin to prevent overlap
-              fig.tight_layout()
-              filename = f"line_{metric.lower()}_vs_{param.lower()}.pdf"
-              fig.savefig(os.path.join(figure_path, filename), format='pdf')
-              plt.close(fig)
+                
+                # Add more top margin to prevent overlap
+                fig.tight_layout()
+                filename = f"line_{metric.lower()}_vs_{param.lower()}.pdf"
+                fig.savefig(os.path.join(figure_path, filename), format='pdf')
+                plt.close(fig)
 
-      # Create combined figure
-      n_metrics = len(self.metrics)
-      n_params = len(self.varying_params)
-      n_plots = n_metrics * n_params
-      n_cols = 2
-      n_rows = (n_plots + n_cols - 1) // n_cols
-
-      fig_combined = plt.figure(figsize=(5.6, 1.34 * n_rows))
-      gs = fig_combined.add_gridspec(n_rows, n_cols)
-      plot_idx = 0
-
-       
-      for metric in self.metrics:
-          for param in self.varying_params:
-              row = plot_idx // n_cols
-              col = plot_idx % n_cols
-              ax = fig_combined.add_subplot(gs[row, col])
-              
-              param_results = results_by_param[param]
-              param_values = sorted({float(r[param]) for r in param_results})
-              
-              for alg in algorithms:
-                  x_vals = []
-                  y_vals = []
-                  for val in param_values:
-                      matching_results = [r[metric] for r in param_results 
-                                      if float(r[param]) == val and r['FrequencyEstimator'] == alg]
-                      if matching_results:
-                          x_vals.append(val)
-                          y_mean = np.mean(matching_results)
-                          y_vals.append(metric_transforms[metric](y_mean))
-                  
-                  if x_vals and y_vals:
-                      color, linestyle, marker = decorations.get(alg, ('gray', '-', 'o'))
-                      ax.plot(x_vals, y_vals,
-                              label=algorithm_display_names.get(alg, alg),
-                              markerfacecolor='none',
-                              color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
-                              linewidth=2, markersize=4)
-              
-              # Style the subplot
-              for spine in ax.spines.values():
-                  spine.set_visible(True)
-                  spine.set_linewidth(0.1)
-                  spine.set_color('black')
-              
-              ax.set_xlabel(param_display_names.get(param, param), 
-                          fontsize=font_config['label_size_combined'], labelpad=0.1, 
-                          fontfamily=font_config['family'])
-              ax.set_ylabel(metric_display_names.get(metric, metric), 
-                          fontsize=font_config['label_size_combined'], labelpad=0.1, 
-                          fontfamily=font_config['family'])
-              ax.tick_params(axis='both', which='both', direction='in', pad=2, 
-                          labelsize=font_config['tick_size_combined'])
-              ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
-              
-              if param == 'THETA' and min(x_vals) < 0.001:  # Check if we need scientific notation
+        # Define explicit layout for combined figure
+        # Each entry is (metric, param) for a specific cell in the grid
+        # layout = [
+        #     [('Throughput', 'BASE_UNIT'), ('ARE', 'BASE_UNIT')], 
+        #     [('Throughput', 'THETA'), ('ARE', 'THETA')],
+        #     [('Precision', 'BASE_UNIT'), ('Recall', 'BASE_UNIT')],
+        #     [('Precision', 'THETA'), ('Recall', 'THETA')]
+        # ]
+        
+        layout = [
+            [('Throughput', 'BASE_UNIT'), ('ARE', 'BASE_UNIT')], 
+            [('Throughput', 'DIST_PARAM'), ('ARE', 'DIST_PARAM')], 
+            [('Throughput', 'THETA'), ('ARE', 'THETA')],
+            [('Precision', 'BASE_UNIT'), ('Recall', 'BASE_UNIT')],
+            [('Precision', 'DIST_PARAM'), ('Recall', 'DIST_PARAM')],
+            [('Precision', 'THETA'), ('Recall', 'THETA')],
+        ]
+        
+        # Flatten the layout to get a list of all (metric, param) combinations
+        all_cells = [cell for row in layout for cell in row]
+        n_cells = len(all_cells)
+        
+        # Create combined figure with explicitly defined layout
+        n_cols = 2  # We want pairs of plots side by side
+        n_rows = (n_cells + 1) // 2  # Ceiling division to get needed rows
+        fig_combined = plt.figure(figsize=(5.6, 1.34 * n_rows))
+        gs = fig_combined.add_gridspec(n_rows, n_cols)
+        
+        # Process each cell in the layout
+        for idx, (metric, param) in enumerate(all_cells):
+            row_idx = idx // n_cols
+            col_idx = idx % n_cols
+            
+            ax = fig_combined.add_subplot(gs[row_idx, col_idx])
+            
+            param_results = results_by_param[param]
+            param_values = sorted({float(r[param]) for r in param_results})
+            
+            # Collect data for all algorithms to calculate improvements
+            alg_data = {}
+            for alg in algorithms:
+                x_vals = []
+                y_vals = []
+                raw_vals = []  # Store raw values (before transformation)
+                
+                for val in param_values:
+                    matching_results = [r[metric] for r in param_results 
+                                        if float(r[param]) == val and r['FrequencyEstimator'] == alg]
+                    if matching_results:
+                        x_vals.append(val)
+                        y_mean = np.mean(matching_results)
+                        raw_vals.append(y_mean)  # Store raw value
+                        y_vals.append(metric_transforms[metric](y_mean))
+                
+                if x_vals and y_vals:
+                    color, linestyle, marker = decorations.get(alg, ('gray', '-', 'o'))
+                    ax.plot(x_vals, y_vals,
+                            label=algorithm_display_names.get(alg, alg),
+                            markerfacecolor='none',
+                            color=material_colors[color]["500"], linestyle=linestyle, marker=marker,
+                            linewidth=2, markersize=4)
+                    
+                    alg_data[alg] = {"x": x_vals, "y": y_vals, "raw": raw_vals, "color": material_colors[color]["500"]}
+            
+            # Calculate and prepare annotations
+            if alg_data:
+                # For each algorithm, collect improvements across all parameter values
+                alg_improvements = {}
+                
+                for val_idx, val in enumerate(param_values):
+                    # Find all algorithms that have data for this parameter value
+                    val_raw_values = {}
+                    for alg, data in alg_data.items():
+                        if val in data["x"]:
+                            idx = data["x"].index(val)
+                            val_raw_values[alg] = data["raw"][idx]
+                    
+                    if val_raw_values:
+                        # For ARE, lowest is best
+                        if metric == "ARE":
+                            worst_val = max(val_raw_values.values())
+                            best_metric_is_higher = False
+                        else:
+                            # For other metrics, highest is best
+                            worst_val = min(val_raw_values.values())
+                            best_metric_is_higher = True
+                        
+                        # Calculate improvements for each algorithm at this parameter value
+                        for alg, raw_val in val_raw_values.items():
+                            if worst_val > 0:  # Avoid division by zero
+                                if best_metric_is_higher:
+                                    improvement = raw_val / worst_val
+                                else:
+                                    improvement = worst_val / raw_val
+                                
+                                if alg not in alg_improvements:
+                                    alg_improvements[alg] = []
+                                alg_improvements[alg].append(improvement)
+                
+                # Create annotation data for each algorithm
+                annotation_data = []
+                last_param_val = max(param_values)
+                
+                for alg, improvements in alg_improvements.items():
+                    if improvements and alg in alg_data:
+                        min_improvement = min(improvements)
+                        max_improvement = max(improvements)
+                        avg_improvement = sum(improvements) / len(improvements)
+                        
+                        # Format as range if min and max differ significantly
+                        if abs(max_improvement - min_improvement) < 0.2:  # Very close, just use max
+                            improvement_text = f"{format_improvement(max_improvement)}×"
+                        else:
+                            min_text = format_improvement(min_improvement)
+                            max_text = format_improvement(max_improvement)
+                            improvement_text = f"{min_text}-{max_text}×"
+                        
+                        # Get the y-position for the final point for positioning the annotation
+                        if last_param_val in alg_data[alg]["x"]:
+                            idx = alg_data[alg]["x"].index(last_param_val)
+                            y_val = alg_data[alg]["y"][idx]
+                            
+                            annotation_data.append({
+                                "x": last_param_val,
+                                "y": y_val,
+                                "avg_improvement": avg_improvement,  # For sorting
+                                "text": improvement_text,
+                                "color": alg_data[alg]["color"]
+                            })
+                
+                # Sort annotations by average improvement
+                reverse_sort = True
+                annotation_data.sort(key=lambda x: x["avg_improvement"], reverse=reverse_sort)
+                
+                # Add annotations at appropriate positions
+                if annotation_data:
+                    # Get y-axis range for positioning
+                    y_range = ax.get_ylim()
+                    available_height = y_range[1] - y_range[0]
+                    
+                    # Calculate spacing to distribute evenly across 80% of the y-axis
+                    annotation_count = len(annotation_data)
+                    spacing = (available_height * 0.8) / max(1, annotation_count - 1) if annotation_count > 1 else 0
+                    
+                    # Start position depends on metric type
+                    if metric == "ARE":  # Lower is better
+                        start_y = y_range[0] + (available_height * 0.1)  # Start at 10% from bottom
+                    else:  # Higher is better
+                        start_y = y_range[1] - (available_height * 0.1)  # Start at 10% from top
+                    
+                    # Position for annotations, slightly right of the plot
+                    x_pos = last_param_val * 1.015 if param == 'DIST_PARAM' else last_param_val * 1.05
+                    
+                    # Adjust x-axis limit to make room
+                    # Find longest annotation text
+                    max_text_length = max(len(ann["text"]) for ann in annotation_data)
+                    scaling_factor = 1.06 + (max_text_length * 0.029) 
+                    scaling_factor = min(max(scaling_factor, 1.1), 1.5)
+                    ax.set_xlim(right=min(param_values)+(last_param_val-min(param_values)) * scaling_factor)
+                    
+                    # Add annotations
+                    for i, ann in enumerate(annotation_data):
+                        if metric == "ARE":
+                            y_pos = start_y + (i * spacing)  # Move bottom to top
+                        else:
+                            y_pos = start_y - (i * spacing)  # Move top to bottom
+                            
+                        ax.annotate(ann["text"],
+                                    xy=(x_pos, y_pos),
+                                    xytext=(0, 0),
+                                    textcoords="offset points",
+                                    fontsize=font_config['annotation_size'],
+                                    fontfamily=font_config['family'],
+                                    ha='left', va='center',
+                                    color=ann["color"])
+            
+            # Style the subplot
+            for spine in ax.spines.values():
+                spine.set_visible(True)
+                spine.set_linewidth(0.1)
+                spine.set_color('black')
+            
+            ax.set_xlabel(param_display_names.get(param, param), 
+                        fontsize=font_config['label_size_combined'], labelpad=0.1, 
+                        fontfamily=font_config['family'])
+            ax.set_ylabel(metric_display_names.get(metric, metric), 
+                        fontsize=font_config['label_size_combined'], labelpad=0.1, 
+                        fontfamily=font_config['family'])
+            ax.tick_params(axis='both', which='both', direction='in', pad=2, 
+                        labelsize=font_config['tick_size_combined'])
+            
+            if param == 'THETA' and min(x_vals) < 0.001:  # Check if we need scientific notation
                 # Force display of all theta values with correct scaling
                 ax.xaxis.set_major_locator(FixedLocator([0.0001, 0.0005, 0.001, 0.005]))
                 
@@ -687,28 +949,26 @@ class SequentialExperimentAnalyzer:
                         return f'{x*1000:.1f}'  # For any other values
                 
                 ax.xaxis.set_major_formatter(ticker.FuncFormatter(custom_formatter))
-              else:
+            else:
                 ax.xaxis.set_major_locator(FixedLocator(x_vals))  # Show all x values
-                  
-              ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
-              if max(y_vals) > 1e6:  # Check if we need scientific notation for y-axis
-                  ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
-                  ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-                  ax.yaxis.offsetText.set_fontsize(font_config['offset_size'])
                 
-              ax.grid(True, 
-                color='gray',
-                alpha=0.2,  # Transparency
-                linestyle='-',
-                linewidth=0.1,
-                axis='y',
-                zorder=0)  # Place grid behind plots
-              
-              plot_idx += 1
-
-      # Add single legend at the top
-      handles, labels = ax.get_legend_handles_labels()
-      fig_combined.legend(handles, labels,
+            ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
+            if max(y_vals) > 1e6:  # Check if we need scientific notation for y-axis
+                ax.yaxis.set_major_formatter(ScalarFormatter(useMathText=True))
+                ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+                ax.yaxis.offsetText.set_fontsize(font_config['offset_size'])
+                
+            ax.grid(True, 
+                    color='gray',
+                    alpha=0.2,  # Transparency
+                    linestyle='-',
+                    linewidth=0.1,
+                    axis='y',
+                    zorder=0)  # Place grid behind plots
+                
+        # Add single legend at the top
+        handles, labels = ax.get_legend_handles_labels()
+        fig_combined.legend(handles, labels,
                         loc='upper center',
                         bbox_to_anchor=(0.5, 0.95),
                         prop={'family': font_config['family']},
@@ -719,16 +979,16 @@ class SequentialExperimentAnalyzer:
                         handletextpad=0,
                         columnspacing=0.5)
 
-      plt.tight_layout(pad=0.0, h_pad=0.1, w_pad=0)
-      fig_combined.subplots_adjust(top=0.89, wspace=0.18)  # Added wspace for consistent column spacing
-      combined_filename = "combined_metrics.pdf"
-      fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', 
-                          bbox_inches='tight', pad_inches=0.03, dpi=800)
-      plt.close(fig_combined)
+        plt.tight_layout(pad=0.0, h_pad=0.1, w_pad=0)
+        fig_combined.subplots_adjust(top=0.9, wspace=0.2)  # Added wspace for consistent column spacing
+        combined_filename = "combined_metrics.pdf"
+        fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', 
+                            bbox_inches='tight', pad_inches=0.03, dpi=2000)
+        plt.close(fig_combined)
 # Example usage:
 
 # base_path = "../experiments/sequential"
-base_path = "./experiments_20250218/sequential/DATASET=CAIDA_L"
+base_path = "./experiments_20250218/sequential/DATASET=zipf"
 fixed_params = {
     # 'DIST_PARAM': {'0.8', '1', '1.2', '1.4', '1.6'},
     # 'DATASET': {'CAIDA_L'},
@@ -743,7 +1003,9 @@ default_params = {
 }
 # varying_params = ['DIST_PARAM', 'BASE_UNIT', 'THETA']
 # varying_params = ['THETA', 'BASE_UNIT', 'DIST_PARAM']
-varying_params = ['THETA', 'BASE_UNIT']
+# varying_params = ['THETA', 'BASE_UNIT']
+# varying_params = ['BASE_UNIT', 'THETA']
+varying_params = ['DIST_PARAM', 'BASE_UNIT', 'THETA']
 
 # Create analyzer instance
 analyzer = SequentialExperimentAnalyzer(

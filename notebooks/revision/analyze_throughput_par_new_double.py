@@ -7,6 +7,7 @@ from matplotlib.ticker import MaxNLocator
 from typing import List, Dict, Set, Any
 from matplotlib.ticker import MaxNLocator, LinearLocator, FixedLocator
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+import matplotlib.font_manager as fm
 
 
 def load_material_colors(filepath='material-colors.json'):
@@ -103,18 +104,31 @@ class ThroughputExperimentAnalyzer:
         """Create throughput visualization for multiple machines using Matplotlib."""
         material_colors = load_material_colors("./notebooks/material-colors.json")
         
+        # Get the notebooks directory (one level up from the revision directory)
+        notebooks_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # Reference fonts relative to the notebooks directory
+        font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_R.ttf")
+        fm.fontManager.addfont(font_path)
+
+        # Also add the bold variant for titles
+        bold_font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_RB.ttf")
+        fm.fontManager.addfont(bold_font_path)
+        
         # Font configuration dictionary
         font_config = {
-            'family': 'serif',
-            'title_size': 10,
-            'label_size': 10,
-            'tick_size': 8, 
-            'annotation_size': 6,
+            # 'family': 'serif',
+            'family': 'Linux Libertine',
+            'title_size': 12,
+            'label_size': 12,
+            'tick_size': 10, 
+            'annotation_size': 8,
             'legend_size': 8,
-            'machine_name_size': 10,
-            'offset_size': 8
+            'machine_name_size': 12,
+            'offset_size': 10
         }
         plt.rcParams['font.family'] = font_config['family']
+        plt.rcParams['font.serif'] = ['Linux Libertine']
 
 
         # Define query rates with corrected labels
@@ -226,7 +240,7 @@ class ThroughputExperimentAnalyzer:
                     
                     # Calculate fixed positions for annotations
                     # Position them in the right 15% of the plot, evenly spaced
-                    x_pos = max_x * 1.03  # Horizontal position (slightly right of the plot)
+                    x_pos = max_x * 1.04  # Horizontal position (slightly right of the plot)
                     
                     # Place annotations with fixed spacing in a neat column
                     annotation_count = len(speedup_annotations)
@@ -362,7 +376,8 @@ base_paths = [
     "./experiments_throughput_athena_20250303/experiments_throughput_20250303"
 ]
 
-machine_names = ["Machine 1", "Machine 2"]
+# machine_names = ["Machine 1", "Machine 2"]
+machine_names = ["Platform A", "Platform B"]
 
 # Create analyzer instance
 analyzer = ThroughputExperimentAnalyzer(

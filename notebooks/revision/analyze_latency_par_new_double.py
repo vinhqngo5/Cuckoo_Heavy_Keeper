@@ -2,10 +2,14 @@ import os
 import re
 import numpy as np
 import json
+import matplotlib
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
+from matplotlib.patches import ConnectionPatch, Rectangle
 from matplotlib.ticker import MaxNLocator
 from typing import List, Dict, Set, Any
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes, mark_inset
+import matplotlib.font_manager as fm
 
 def load_material_colors(filepath='material-colors.json'):
     """Load material design colors from JSON file."""
@@ -102,26 +106,39 @@ class LatencyExperimentAnalyzer:
         """Create latency visualization for multiple machines using Matplotlib."""
         material_colors = load_material_colors("./notebooks/material-colors.json")
         
+        # Get the notebooks directory (one level up from the revision directory)
+        notebooks_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Reference fonts relative to the notebooks directory
+        font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_R.ttf")
+        fm.fontManager.addfont(font_path)
+
+        # Also add the bold variant for titles
+        bold_font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_RB.ttf")
+        fm.fontManager.addfont(bold_font_path)
+    
         # Font configuration dictionary
         font_config = {
-            'family': 'serif',
-            'title_size': 10,
-            'label_size': 10,
-            'tick_size': 8,
-            'tick_size_inset': 6,
-            'tick_label_inset': 6,
-            'annotation_size': 6,
-            'legend_size': 8,
-            'machine_name_size': 10,
-            'inset_text_size': 6
+            # 'family': 'serif',
+            'family': 'Linux Libertine',
+            'title_size': 12,
+            'label_size': 12,
+            'tick_size': 10,
+            'tick_size_inset': 10,
+            'tick_label_inset': 10,
+            'annotation_size': 8,
+            'legend_size': 10,
+            'machine_name_size': 12,
+            'inset_text_size': 10
         }
         plt.rcParams['font.family'] = font_config['family']
+        plt.rcParams['font.serif'] = ['Linux Libertine']
         
         # Define query rates with corrected labels
         query_rates = ['0.000000', '1.000000', '10.000000']
         query_rate_labels = {'0.000000': '0%', '1.000000': '0.01%', '10.000000': '0.1%'}
         
-        # Algorithm display names and decorations (similar to throughput)
+        # Algorithm display names and decorations
         algorithm_display_names = {
             'cuckoo_heavy_keeper': 'CHK',
             'augmented_sketch': 'AS',
@@ -145,11 +162,35 @@ class LatencyExperimentAnalyzer:
             'QPOPSS': '--'          # dashed
         }
         
-        # Set font to serif for all text elements
-        plt.rcParams['font.family'] = font_config['family']
+        # Create figure
+        fig = plt.figure(figsize=(6.45, 7.8))
         
-        # Create figure with 3x2 subplots (3 rows for query rates, 2 columns for machines)
-        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.8), sharex=False)
+        # Create a grid with 3 rows (each row contains a main plot and an inset)
+        outer_grid = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1], hspace=0.28, wspace=0.24)
+        
+        # Store axes for later reference
+        main_axes = []
+        inset_axes = []
+        
+        # Setup each cell with main plot and inset
+        for row in range(3):
+            row_axes = []
+            row_insets = []
+            
+            for col in range(2):
+                # Create nested gridspec inside each cell
+                inner_grid = outer_grid[row, col].subgridspec(2, 1, height_ratios=[4.25, 1.5], hspace=0.7)
+                
+                # Create main plot
+                main_ax = fig.add_subplot(inner_grid[0])
+                row_axes.append(main_ax)
+                
+                # Create inset (separate x-axis, not shared)
+                inset_ax = fig.add_subplot(inner_grid[1])
+                row_insets.append(inset_ax)
+                
+            main_axes.append(row_axes)
+            inset_axes.append(row_insets)
         
         # Make sure to include all thread values
         thread_values = sorted([int(x) for x in self.fixed_params['NUM_THREADS']])
@@ -159,11 +200,12 @@ class LatencyExperimentAnalyzer:
             
             # Process each query rate (row)
             for row_idx, query_rate in enumerate(query_rates):
-                ax = axs[row_idx, machine_idx]
+                ax = main_axes[row_idx][machine_idx]
+                ax_inset = inset_axes[row_idx][machine_idx]
                 
-                # Create list to store data for determining zoom range
-                all_y_values = []
-                high_thread_data = {}
+                # Dictionary to store all data and CHK-specific data
+                all_data = {}
+                chk_data = {}  # To track CHK ranges for y-axis limits
                 
                 # Process each algorithm
                 for alg in sorted(set(r['ALGORITHM'] for r in results)):
@@ -174,7 +216,8 @@ class LatencyExperimentAnalyzer:
                     for design in ['GLOBAL_HASHMAP', 'QPOPSS']:
                         design_suffix = 'q' if design == 'GLOBAL_HASHMAP' else 'i'
                         key = f"{alg}_{design}"
-                        high_thread_data[key] = {"x": [], "y": [], "color": color, "style": design_line_styles[design], "marker": marker}
+                        all_data[key] = {"x": [], "y": [], "color": color, "style": design_line_styles[design], 
+                                        "marker": marker, "alg": alg, "design": design}
                         
                         # Filter results for this algorithm, design and query rate
                         matching_results = [r for r in results 
@@ -188,103 +231,107 @@ class LatencyExperimentAnalyzer:
                             
                             x_values = [int(r['NUM_THREADS']) for r in sorted_results]
                             y_values = [float(r['latency']) for r in sorted_results]
-                            all_y_values.extend(y_values)
                             
-                            # Store high thread count data for zoom
-                            for x, y in zip(x_values, y_values):
-                                if x >= 60:  # Consider threads >= 60 for zoom
-                                    high_thread_data[key]["x"].append(x)
-                                    high_thread_data[key]["y"].append(y)
+                            all_data[key]["x"] = x_values
+                            all_data[key]["y"] = y_values
                             
-                            # Create label with the format m{algoname}-{design}
+                            # Track CHK data for setting y-axis limits
+                            if alg == 'cuckoo_heavy_keeper':
+                                chk_data[key] = {"x": x_values, "y": y_values}
+                            
+                            # Create label for main plot
                             label = None
                             if row_idx == 0 and machine_idx == 0:
                                 label = f"m{algorithm_display_names[alg]}-{design_suffix}"
                             
-                            # Plot main line
-                            line = ax.plot(x_values, y_values, 
-                                        linestyle=design_line_styles[design], marker=marker, 
-                                        markerfacecolor='none', markersize=6,
-                                        linewidth=1.5, color=color, 
-                                        label=label)
-                
-                # Add zoom inset if we have high thread data
-                if all_y_values and any(len(data["x"]) > 0 for data in high_thread_data.values()):
-                    # Create inset axes in top right corner
-                    axins = inset_axes(ax, width="25%", height="35%", 
-                                    loc='upper right', borderpad=0.3)
-                    
-                    # Plot data in the inset
-                    for key, data in high_thread_data.items():
-                        if data["x"] and data["y"]:
-                            # For inset plot, cap values at 300 for better visibility of low latencies
-                            capped_y = [min(y, 300) for y in data["y"]]
+                            # Plot in main axes
+                            ax.plot(x_values, y_values, 
+                                linestyle=design_line_styles[design], marker=marker, 
+                                markerfacecolor='none', markersize=6,
+                                linewidth=1.5, color=color, 
+                                label=label)
                             
-                            axins.plot(data["x"], capped_y, 
-                                    linestyle=data["style"], marker=data["marker"],
+                            # Plot in inset axes (all algorithms)
+                            ax_inset.plot(x_values, y_values, 
+                                    linestyle=design_line_styles[design], marker=marker, 
                                     markerfacecolor='none', markersize=4,
-                                    linewidth=1.2, color=data["color"])
-                            
-                            # # Add markers for points that were capped
-                            # for i, (x, y) in enumerate(zip(data["x"], data["y"])):
-                            #     if y > 300:
-                            #         axins.scatter(x, 300, marker='^', s=20, color=data["color"], 
-                            #                     alpha=0.7, zorder=10)
-                    
-                    # Set fixed limits for the inset - focus on threads 60-70 and latency 0-300
-                    axins.set_xlim(60, 70)
-                    axins.set_ylim(0, 300)
-                    
-                    # Add more yticks to the inset
-                    axins.set_yticks([0, 100, 200, 300])
-                    axins.set_yticklabels(['0', '100', '200', '300'], fontsize=font_config['tick_label_inset'])
-
-                    # Format the inset
-                    axins.tick_params(axis='both', which='both', labelsize=font_config['tick_size_inset'])
-                    axins.grid(True, alpha=0.2, linestyle='-', linewidth=0.1)
-                    
-                    # # Add y-axis label indicating cap
-                    # axins.text(0.02, 0.98, "≤300μs", transform=axins.transAxes,
-                    #         fontsize=font_config['inset_text_size'], fontfamily=font_config['family'], va='top')
-                    
-                    # Draw connecting lines between inset and main plot with dotted style
-                    mark_inset(ax, axins, loc1=3, loc2=4, fc="none", ec="0.5", lw=0.1, ls=":")
+                                    linewidth=1.2, color=color)
                 
-                # Set title and other styling (as before)
+                # Style the main subplot
                 ax.set_title(f"HH-Query Rate = {query_rate_labels[query_rate]}", 
                         fontsize=font_config['title_size'], fontfamily=font_config['family'], pad=2)
-                
-                # Set y-axis label for all subplots
                 ax.set_ylabel('Latency (μs)', fontsize=font_config['label_size'], 
                             fontfamily=font_config['family'], labelpad=1)
                 
-                # Style the subplot
                 for spine in ax.spines.values():
                     spine.set_visible(True)
                     spine.set_linewidth(0.1)
                     spine.set_color('black')
                 
-                # Explicitly set x-ticks on all subplots
+                # Set x-ticks for main plot
                 ax.set_xticks(thread_values)
-                ax.set_xticklabels([str(x) for x in thread_values], fontsize=font_config['tick_size'])
+                ax.set_xticklabels([str(x) for x in thread_values], 
+                                fontsize=font_config['tick_size'])
                 ax.tick_params(axis='both', which='both', direction='in', 
                             pad=2, labelsize=font_config['tick_size'])
                 ax.yaxis.set_major_locator(MaxNLocator(nbins=4, min_n_ticks=4))
                 
                 ax.grid(True, color='gray', alpha=0.2, linestyle='-', linewidth=0.1, axis='y', zorder=0)
                 
-                # Set x-axis label for all subplots
+                # Add x-axis label to main plot
                 ax.set_xlabel('Number of Threads', fontsize=font_config['label_size'], 
                             fontfamily=font_config['family'], labelpad=1)
-        
+                
+                # Style the inset
+                # Set y-axis limits based on CHK data
+                if chk_data:
+                    all_chk_y = []
+                    for data in chk_data.values():
+                        all_chk_y.extend(data["y"])
+                    
+                    if all_chk_y:
+                        y_max = max(all_chk_y) * 1.1  # Add 10% margin
+                        ax_inset.set_ylim(0, y_max)
+                        
+                        # Add exactly 3 y-ticks with nice round numbers
+                        # Round max value to a nice number
+                        rounded_max = np.ceil(y_max / 100) * 100  # Round up to nearest 100
+                        middle_value = rounded_max / 2  # Middle value
+                        
+                        # Set exactly 3 ticks: 0, middle, max
+                        y_ticks = [0, middle_value, rounded_max]
+                        ax_inset.set_yticks(y_ticks)
+                        ax_inset.set_yticklabels([f"{int(y)}" for y in y_ticks], 
+                                                fontsize=font_config['tick_size_inset'])
+                
+                # Set x-axis limits to show all threads
+                ax_inset.set_xlim(1, 70)
+                
+                # Format the inset
+                ax_inset.grid(True, alpha=0.2, linestyle='-', linewidth=0.1)
+                
+                # Only show subset of x-ticks to avoid crowding
+                ax_inset.set_xticks([1, 10, 20, 30, 40, 50, 60, 70])
+                ax_inset.set_xticklabels(['1', '10', '20', '30', '40', '50', '60', '70'], 
+                                    fontsize=font_config['tick_size_inset'])
+                ax_inset.tick_params(axis='both', which='both', labelsize=font_config['tick_size_inset'])
+                
+                # Add inset title to indicate zoom
+                ax_inset.set_title("Zoom (All threads, y-axis scaled to CHK)", 
+                                fontsize=font_config['inset_text_size'], fontfamily=font_config['family'], pad=1)
+
+                mark_inset(ax, ax_inset, loc1=1, loc2=2, fc="none", ec="0.5", lw=1, ls=":")
+                # mark_inset(ax, axins, loc1=3, loc2=4, fc="none", ec="0.5", lw=0.1, ls=":")
+
+                
         # Add machine names as a super title for each column
         for machine_idx, machine_name in enumerate(results_by_machine.keys()):
-            fig.text(0.25 + 0.5*machine_idx, 0.89, machine_name, 
+            fig.text(0.25 + 0.5*machine_idx, 0.905, machine_name, 
                     ha='center', fontsize=font_config['machine_name_size'], 
                     fontfamily=font_config['family'])
         
         # Organize legend by algorithm pairs (-q and -i versions together)
-        handles, labels = axs[0, 0].get_legend_handles_labels()
+        handles, labels = main_axes[0][0].get_legend_handles_labels()
         
         # Reorganize handles and labels by algorithm
         alg_pairs = {}
@@ -303,10 +350,10 @@ class LatencyExperimentAnalyzer:
                 new_handles.append(handle)
                 new_labels.append(label)
                 
-        # Add legend with organized pairs, positioned higher to avoid overlap
+        # Add legend with organized pairs
         fig.legend(new_handles, new_labels,
                 loc='upper center',
-                bbox_to_anchor=(0.5, 1.03),
+                bbox_to_anchor=(0.5, 0.99),
                 ncol=len(alg_pairs),  # One column per algorithm
                 fontsize=font_config['legend_size'],
                 frameon=False,
@@ -316,15 +363,15 @@ class LatencyExperimentAnalyzer:
                 prop={'family': font_config['family']})
         
         # Adjust layout
-        plt.tight_layout(pad=0.0, h_pad=0.9, w_pad=0.0)
-        plt.subplots_adjust(top=0.85, wspace=0.21, hspace=0.56)  # Added wspace for column spacing consistency
+        plt.tight_layout()
+        plt.subplots_adjust(top=0.878, wspace=0.24)
         
         # Save figure
         figure_path = os.path.join(self.base_paths[0], 'figures')
         os.makedirs(figure_path, exist_ok=True)
         filename = f"par_latency_comparison_all.pdf"
         plt.savefig(os.path.join(figure_path, filename), format='pdf', 
-                bbox_inches='tight', pad_inches=0.03, dpi=2000)
+                bbox_inches='tight', pad_inches=0.022, dpi=20000)
         plt.close(fig)
 
 
@@ -344,7 +391,8 @@ base_paths = [
     "./experiment_latency_athena_20250228/experiments_latency_20250228",
 ]
 
-machine_names = ["Machine 1", "Machine 2"]
+# machine_names = ["Machine 1", "Machine 2"]
+machine_names = ['Platform A', 'Platform B']
 
 # Create analyzer instance
 analyzer = LatencyExperimentAnalyzer(

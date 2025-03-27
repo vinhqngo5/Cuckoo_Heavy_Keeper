@@ -12,6 +12,8 @@ CuckooHeavyKeeper::CuckooHeavyKeeper(size_t bucket_num, double theta, counter_t 
 
     srand(static_cast<unsigned int>(clock()));
     m_bobhash = new BOBHash64(rand() % 1228);
+    rng.seed(std::random_device()());
+    dist = std::uniform_real_distribution<double>(0.0, 1.0);
     _init_decay_expectations();
 }
 
@@ -23,7 +25,12 @@ CuckooHeavyKeeper::~CuckooHeavyKeeper() {
 
 void CuckooHeavyKeeper::_init_decay_expectations() {
     m_decay_expectations[0] = 0;
-    for (int i = 1; i <= MAX_COUNTER; i++) { m_decay_expectations[i] = m_decay_expectations[i - 1] + std::pow(m_decay_base, i - 1); }
+    m_min_decay_amounts[0] = 0;
+
+    for (int i = 1; i <= MAX_COUNTER; i++) {
+        m_decay_expectations[i] = m_decay_expectations[i - 1] + std::pow(m_decay_base, i - 1);
+        m_min_decay_amounts[i] = m_decay_expectations[i] - m_decay_expectations[i - 1];
+    }
 }
 
 void CuckooHeavyKeeper::_generate_fingerprint_and_index(const std::string &item, fingerprint_t &fp, size_t &idx) const {
@@ -67,7 +74,9 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
     // Calculate promotion probability only if target counter is greater
     if (target.counter > lobby.counter) {
         double prob = (lobby.counter - m_promotion_threshold) * (1.0 / (target.counter - m_promotion_threshold));
-        if ((static_cast<double>(rand()) / RAND_MAX) >= prob) { return false; }
+        // if ((static_cast<double>(rand()) / RAND_MAX) >= prob) { return false; }
+        double rand_prob = dist(rng);
+        if (rand_prob >= prob) { return false; }
     }
 
     // Handle promotion and kickout
@@ -81,21 +90,34 @@ bool CuckooHeavyKeeper::_try_promote_and_kickout(Entry &lobby, Entry &target, si
 counter_t CuckooHeavyKeeper::_decay_counter(counter_t current, int weight) {
     if (current == 0) return 0;
 
+    // Handle case where weight == 1
     if (weight == 1) {
         // Original Heavy Keeper decay with probability b^(-current)
         double decay_prob = std::pow(m_decay_base, -current);
-        if ((static_cast<double>(rand()) / RAND_MAX) < decay_prob) { return current - 1; }
+        // if ((static_cast<double>(rand()) / RAND_MAX) < decay_prob) { return current - 1; }
+        double rand_prob = dist(rng);
+        if (rand_prob < decay_prob) { return current - 1; }
         return current;
     }
 
+    // Handle case where weight > 1 but is too small to cause any decay
+    if (weight > 1 && weight < m_min_decay_amounts[current]) {
+        // Apply probabilistic decay proportional to weight relative to min_decay_amount
+        double decay_prob = weight / m_min_decay_amounts[current];
+        double rand_prob = dist(rng);
+        if (rand_prob < decay_prob) { return current - 1; }
+        return current;
+    }
+
+    // Handle case where weight is large enough to cause C decay to 0
     if (weight >= m_decay_expectations[current]) return 0;
 
     int left = 0;
     int right = current;
 
+    // Handle case where weight is large enough to cause C decay to C - x (0 < x < C)
     // Binary search to find first position where m_decay_expectations[idx] + weight >= m_decay_expectations[current]
     //<=> m_decay_expectations[idx]  >= m_decay_expectations[current] - weight
-
     while (left < right) {
         int mid = left + (right - left) / 2;
 
@@ -187,8 +209,16 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
         Entry &lobby = m_tables[table_idx][idx].get_lobby();
 
         if (lobby.is_empty()) {
-            lobby = Entry{fp, weight};
-            return weight;
+            if (weight < m_promotion_threshold) {
+                lobby = Entry{fp, weight};
+                return weight;
+            } else {
+                Entry &smallest = m_tables[table_idx][idx].get_smallest_heavy();
+                int result = weight > smallest.counter ? weight : smallest.counter;
+                if (_try_promote_and_kickout(lobby, smallest, table_idx, idx)) { return result; }
+                lobby.counter = m_promotion_threshold;
+                return m_promotion_threshold;
+            }
         }
     }
 
@@ -198,7 +228,9 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
 
     Entry &target_lobby = m_tables[target_table_idx][target_idx].get_lobby();
 
+    Entry tmp = target_lobby;
     counter_t new_count = _decay_counter(target_lobby.counter, weight);
+
     target_lobby = (new_count == 0) ? Entry{fp, weight - m_decay_expectations[target_lobby.counter]} : Entry{target_lobby.fingerprint, new_count};
 
     if (target_lobby.counter > m_promotion_threshold) {
@@ -209,7 +241,7 @@ counter_t CuckooHeavyKeeper::_update_impl(const std::string &item, int weight) {
         return m_promotion_threshold;
     }
 
-    return weight;
+    return target_lobby.fingerprint == fp ? target_lobby.counter : 0;
 }
 
 counter_t CuckooHeavyKeeper::_estimate_impl(const std::string &item) const {

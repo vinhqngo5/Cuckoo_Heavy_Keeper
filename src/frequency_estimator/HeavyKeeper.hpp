@@ -20,7 +20,7 @@ class HeavyKeeper : public FrequencyEstimatorBase {
     constexpr static double HK_b = 1.08;
     constexpr static int N = 1000000;      // maximum flow
     constexpr static int M = 1000000;      // maximum size of stream-summary or CSS
-    constexpr static int MAX_MEM = 2000;   // maximum memory size
+    constexpr static int MAX_MEM = 3000;   // maximum memory size
     struct node {
         int C = 0, FP = 0;
     };

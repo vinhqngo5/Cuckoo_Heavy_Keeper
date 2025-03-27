@@ -51,6 +51,7 @@ target_compile_definitions(example_optimized_weighted_frequent PRIVATE ALGORITHM
 target_link_libraries(example_optimized_weighted_frequent PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 
+# Parallel versions of CHK
 # mCHK-I
 ## throughput 
 set (FREQUENCY_ESTIMATOR_FLAGS
@@ -61,7 +62,7 @@ set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
     "PARALLEL_DESIGN=QPOPSS"
-    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
     "EVALUATE_MODE=throughput"
     "EVALUATE_ACCURACY_WHEN=ivl"
     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
@@ -79,7 +80,7 @@ set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
     "PARALLEL_DESIGN=QPOPSS"
-    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
     "EVALUATE_MODE=latency"
     "EVALUATE_ACCURACY_WHEN=ivl"
     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
@@ -99,7 +100,7 @@ set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
     "PARALLEL_DESIGN=GLOBAL_HASHMAP"
-    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
     "EVALUATE_MODE=throughput"
     "EVALUATE_ACCURACY_WHEN=ivl"
     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
@@ -117,7 +118,7 @@ set(DELEGATION_FLAGS
     "ALGORITHM=cuckoo_heavy_keeper"
     "MODE=heavy_hitter"
     "PARALLEL_DESIGN=GLOBAL_HASHMAP"
-    "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
     "EVALUATE_MODE=latency"
     "EVALUATE_ACCURACY_WHEN=ivl"
     "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
@@ -128,7 +129,288 @@ target_compile_definitions(example_mCHKQ_latency PRIVATE ${DELEGATION_FLAGS} ${F
 target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 
+# Parallel versions of CMS
+# mCMS-I
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=count_min"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=count_min"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCMSI_throughput delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mCMSI_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCMSI_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
+# mCMS-q
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=count_min"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=count_min"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCMSQ_throughput delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mCMSQ_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCMSQ_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+## mCMS-I latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=count_min"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=count_min" 
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCMSI_latency delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mCMSI_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCMSI_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+## mCMS-Q latency 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=count_min"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=count_min"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mCMSQ_latency delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mCMSQ_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mCMSQ_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# Parallel versions of AS
+# mAS-I
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=augmented_sketch"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=augmented_sketch"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mASI_throughput delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mASI_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mASI_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# mAS-q
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=augmented_sketch"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=augmented_sketch"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mASQ_throughput delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mASQ_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mASQ_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+
+# AS latency
+## mAS-I latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=augmented_sketch"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=augmented_sketch"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mASI_latency delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mASI_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mASI_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+## mAS-Q latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=augmented_sketch"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=augmented_sketch"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mASQ_latency delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mASQ_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mASQ_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+
+# Parallel versions of HK
+# mHK-I
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heavy_keeper"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mHKI_throughput delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mHKI_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mHKI_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# mHK-q
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heavy_keeper"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heavy_keeper"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mHKQ_throughput delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mHKQ_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mHKQ_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+
+# Parallel versions of SS
+# mSS-I
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mSSI_throughput delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mSSI_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mSSI_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# mSS-q
+## throughput 
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=throughput"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mSSQ_throughput delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mSSQ_throughput PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mSSQ_throughput PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+# SS latency 
+## mSS-I latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=QPOPSS"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mSSI_latency delegation_sketch/example_delegation_heavyhitter_QPOPSS.cpp)
+target_compile_definitions(example_mSSI_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mSSI_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
+
+## mSS-Q latency
+set (FREQUENCY_ESTIMATOR_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    CACHE STRING "Flags for compiling the frequency estimator" FORCE
+)
+set(DELEGATION_FLAGS
+    "ALGORITHM=heap_hashmap_space_saving"
+    "MODE=heavy_hitter"
+    "PARALLEL_DESIGN=GLOBAL_HASHMAP"
+    "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
+    "EVALUATE_MODE=latency"
+    "EVALUATE_ACCURACY_WHEN=ivl"
+    "EVALUATE_ACCURACY_ERROR_SOURCES=algo_df_continuous"
+    CACHE STRING "Flags for compiling the delegation sketch" FORCE
+)
+add_executable(example_mSSQ_latency delegation_sketch/example_delegation_heavyhitter.cpp)
+target_compile_definitions(example_mSSQ_latency PRIVATE ${DELEGATION_FLAGS} ${FREQUENCY_ESTIMATOR_FLAGS})
+target_link_libraries(example_mSSQ_latency PRIVATE frequency_estimator_objects delegation_sketch_objects)
 
 # example_delegation_heavyhitter
 # 1. Binary with ALGORITHM = cuckoo_heavy_keeper
@@ -143,7 +425,7 @@ target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects 
 #     "MODE=heavy_hitter"
 #     "PARALLEL_DESIGN=GLOBAL_HASHMAP"
 #     # "EVALUATE_MODE=accuracy"
-#     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+#     "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
 #     # "EVALUATE_MODE=throughput"
 #     "EVALUATE_MODE=latency"
 #     "EVALUATE_ACCURACY_WHEN=start"
@@ -171,7 +453,7 @@ target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects 
 #     # "PARALLEL_DESIGN=GLOBAL_HASHMAP"
 #     "PARALLEL_DESIGN=QPOPSS"
 #     # "EVALUATE_MODE=accuracy"
-#     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+#     "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
 #     "EVALUATE_MODE=throughput"
 #     # "EVALUATE_MODE=latency"
 #     # "EVALUATE_ACCURACY_WHEN=start"
@@ -248,7 +530,7 @@ target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects 
 #     "MODE=heavy_hitter"
 #     "PARALLEL_DESIGN=GLOBAL_HASHMAP"
 #     # "EVALUATE_MODE=accuracy"
-#     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+#     "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
 #     "EVALUATE_MODE=throughput"
 #     # "EVALUATE_ACCURACY_WHEN=start"
 #     "EVALUATE_ACCURACY_WHEN=ivl"
@@ -266,7 +548,7 @@ target_link_libraries(example_mCHKQ_latency PRIVATE frequency_estimator_objects 
 #     "MODE=heavy_hitter"
 #     "PARALLEL_DESIGN=QPOPSS"
 #     # "EVALUATE_MODE=accuracy"
-#     "EVALUATE_ACCURACY_STREAM_SIZE=10000000"
+#     "EVALUATE_ACCURACY_STREAM_SIZE=1000000"
 #     # "EVALUATE_MODE=throughput"
 #     "EVALUATE_MODE=throughput_while_querying"
 #     # "EVALUATE_ACCURACY_WHEN=start"

@@ -2,15 +2,28 @@
 data/
 
 # python venv folder
-pyvenv/
+pyvenv
 
 # experimental folder
 experiments/
+experiments_20250218
+experiments_latency_20250226
+experiments_latency_rerun
+experiments_sensitivity_20250314
+experiment_latency_athena_20250228
+experiments_throughput_athena_20250303
+experiments_latency_20250303
+experiments_CAIDA_H_20250218
+experiments_CAIDA_L_20250218
+experiments_skewness_20250218
 old_experiments/
 old_experiments*/
 sequential_final*/
 throughput*/
 latency*/
+
+# fonts
+notebooks/fonts
 
 # Build directories and binary files
 build/

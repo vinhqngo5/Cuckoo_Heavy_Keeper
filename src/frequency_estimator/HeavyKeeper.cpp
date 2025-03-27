@@ -133,13 +133,15 @@ void HeavyKeeper::print_status() {
 }
 
 void HeavyKeeper::update(const std::string &item, int c) {
-    this->_assert_not_implemented(c);
-    this->_insert(item.c_str());
+    // this->_assert_not_implemented(c);
+    // this->_insert(item.c_str());
+    while (c--) { this->_insert(item.c_str()); }
 }
 
 void HeavyKeeper::update(const int &item, int c) {
-    this->_assert_not_implemented(c);
-    this->_insert(std::to_string(item));
+    // this->_assert_not_implemented(c);
+    // this->_insert(std::to_string(item));
+    while (c--) { this->_insert(std::to_string(item)); }
 }
 
 unsigned int HeavyKeeper::_estimate(const std::string &item) {
@@ -159,24 +161,27 @@ unsigned int HeavyKeeper::estimate(const std::string &item) { return this->_esti
 unsigned int HeavyKeeper::estimate(const int &item) { return this->_estimate(std::to_string(item)); }
 
 unsigned int HeavyKeeper::update_and_estimate(const std::string &item, int c) {
-    this->_assert_not_implemented(c);
-    this->total += 1;
-    unsigned long long H = hash(item);
-    int FP = (H >> 48);
+    // this->_assert_not_implemented(c);
     int maxv = 0;
-    for (int j = 0; j < HK_d; j++) {
-        int Hsh = H % (M2 - (2 * HK_d) + 2 * j + 3);
-        int c = HK[j][Hsh].C;
-        if (HK[j][Hsh].FP == FP) {
-            HK[j][Hsh].C++;
-            maxv = std::max(maxv, HK[j][Hsh].C);
-        } else {
-            if (!(rand() % int(pow(HK_b, HK[j][Hsh].C)))) {
-                HK[j][Hsh].C--;
-                if (HK[j][Hsh].C <= 0) {
-                    HK[j][Hsh].FP = FP;
-                    HK[j][Hsh].C = 1;
-                    maxv = std::max(maxv, 1);
+    while (c--) {
+        this->total += 1;
+        unsigned long long H = hash(item);
+        int FP = (H >> 48);
+        maxv = 0;
+        for (int j = 0; j < HK_d; j++) {
+            int Hsh = H % (M2 - (2 * HK_d) + 2 * j + 3);
+            int c = HK[j][Hsh].C;
+            if (HK[j][Hsh].FP == FP) {
+                HK[j][Hsh].C++;
+                maxv = std::max(maxv, HK[j][Hsh].C);
+            } else {
+                if (!(rand() % int(pow(HK_b, HK[j][Hsh].C)))) {
+                    HK[j][Hsh].C--;
+                    if (HK[j][Hsh].C <= 0) {
+                        HK[j][Hsh].FP = FP;
+                        HK[j][Hsh].C = 1;
+                        maxv = std::max(maxv, 1);
+                    }
                 }
             }
         }
@@ -185,24 +190,27 @@ unsigned int HeavyKeeper::update_and_estimate(const std::string &item, int c) {
 }
 
 unsigned int HeavyKeeper::update_and_estimate(const int &item, int c) {
-    this->_assert_not_implemented(c);
-    this->total += 1;
-    unsigned long long H = hash(std::to_string(item));
-    int FP = (H >> 48);
-    int maxv = 0;
-    for (int j = 0; j < HK_d; j++) {
-        int Hsh = H % (M2 - (2 * HK_d) + 2 * j + 3);
-        int c = HK[j][Hsh].C;
-        if (HK[j][Hsh].FP == FP) {
-            HK[j][Hsh].C++;
-            maxv = std::max(maxv, HK[j][Hsh].C);
-        } else {
-            if (!(rand() % int(pow(HK_b, HK[j][Hsh].C)))) {
-                HK[j][Hsh].C--;
-                if (HK[j][Hsh].C <= 0) {
-                    HK[j][Hsh].FP = FP;
-                    HK[j][Hsh].C = 1;
-                    maxv = std::max(maxv, 1);
+    // this->_assert_not_implemented(c);
+    int maxv;
+    while (c--) {
+        this->total += 1;
+        unsigned long long H = hash(std::to_string(item));
+        int FP = (H >> 48);
+        maxv = 0;
+        for (int j = 0; j < HK_d; j++) {
+            int Hsh = H % (M2 - (2 * HK_d) + 2 * j + 3);
+            int c = HK[j][Hsh].C;
+            if (HK[j][Hsh].FP == FP) {
+                HK[j][Hsh].C++;
+                maxv = std::max(maxv, HK[j][Hsh].C);
+            } else {
+                if (!(rand() % int(pow(HK_b, HK[j][Hsh].C)))) {
+                    HK[j][Hsh].C--;
+                    if (HK[j][Hsh].C <= 0) {
+                        HK[j][Hsh].FP = FP;
+                        HK[j][Hsh].C = 1;
+                        maxv = std::max(maxv, 1);
+                    }
                 }
             }
         }

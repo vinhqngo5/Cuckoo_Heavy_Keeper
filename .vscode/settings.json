@@ -83,7 +83,8 @@
 		"text_encoding": "cpp",
 		"shared_mutex": "cpp",
 		"*.ipp": "cpp",
-		"complex": "cpp"
+		"complex": "cpp",
+		"filesystem": "cpp"
 	},
 	"C_Cpp.default.enableConfigurationSquiggles": true
 }

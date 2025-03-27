@@ -5,7 +5,7 @@ bool LocalHeavyHitterTracker::add_if_is_local_heavy_hitter(int key, int differen
     local_heavy_hitter_differences.push_back(make_tuple(key, difference, count));
 
     if (local_heavy_hitters.contains(key)) {
-        local_heavy_hitters.update_add(key, count);
+        local_heavy_hitters.update_add(key, difference);
         return true;
     } else {
         local_heavy_hitters.push(key, count);
@@ -56,7 +56,7 @@ DelegationHeavyHitter<FrequencyEstimator>::DelegationHeavyHitter(DelegationSketc
     }
 
     precompute_mods(num_threads);
-    global_heavy_hitter_tracker.global_heavy_hitters = libcuckoo::cuckoohash_map<int, int>(1024);
+    global_heavy_hitter_tracker.global_heavy_hitters = libcuckoo::cuckoohash_map<int, int>(2048);
 }
 
 template <typename FrequencyEstimator> int DelegationHeavyHitter<FrequencyEstimator>::direct_query(const int &key) {
@@ -260,14 +260,19 @@ template <typename FrequencyEstimator> void ThreadLocalDelegationHeavyHitter<Fre
         filter->size = 0;
         filter->lock.store(false, std::memory_order_relaxed);
 
+        int QPOPSS_stream_size = 0;
         // update stream size
         if constexpr (DelegationBuildConfig::evaluate_mode == "accuracy" || DelegationBuildConfig::evaluate_mode == "latency") {
-            this->delegation_sketch->QPOPSS_stream_size.fetch_add(total_differences);
+            QPOPSS_stream_size = this->delegation_sketch->QPOPSS_stream_size.fetch_add(total_differences);
             if (this->delegation_sketch->QPOPSS_stream_size.load() >= DelegationBuildConfig::evaluate_accuracy_stream_size) {
                 if constexpr (DelegationBuildConfig::evaluate_accuracy_when == "start") { delegation_sketch_context.START_BENCHMARK.store(false, std::memory_order_relaxed); }
                 delegation_sketch_context.START_ACCURACY_EVALUATION.store(true, std::memory_order_relaxed);
             }
+        } else if constexpr (DelegationBuildConfig::evaluate_mode == "throughput") {
+            QPOPSS_stream_size = this->delegation_sketch->QPOPSS_stream_size.fetch_add(total_differences);
         }
+
+        this->frequency_estimator.update_threshold(QPOPSS_stream_size * delegation_sketch_context.app_configs.THETA);
     }
 
     QPOPSS_mutex.unlock();
@@ -291,10 +296,10 @@ template <typename FrequencyEstimator> void ThreadLocalDelegationHeavyHitter<Fre
 
     this->thread_pairwise_stat_collectors[owner_thread_id].update_delegate_to_j_items();
 
-    if (owner_thread_id == current_thread_id) {
-        this->insert_directly(key);
-        return;
-    }
+    // if (owner_thread_id == current_thread_id) {
+    //     this->insert_directly(key);
+    //     return;
+    // }
 
     auto filter = delegation_filters[owner_thread_id];
     bool flag = false;

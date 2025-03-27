@@ -211,14 +211,136 @@ void Relation::Generate_Data(int type, double data_param, double decor_param) {
 }
 
 template <typename AppConfig> Relation *generate_relation(AppConfig &app_configs) {
+
     Relation *r1 = new Relation(app_configs.DOM_SIZE, app_configs.tuples_no);
-    r1->Generate_Data(app_configs.DIST_TYPE, app_configs.DIST_PARAM, app_configs.DIST_SHUFF);
+    if (app_configs.DATASET == "zipf") {
 
-    // Sometimes Generate_Data might generate less than tuples_no
-    if (r1->tuples_no < app_configs.tuples_no) { app_configs.tuples_no = r1->tuples_no; }
+        r1->Generate_Data(app_configs.DIST_TYPE, app_configs.DIST_PARAM, app_configs.DIST_SHUFF);
 
-    // shuffle the tuples
-    auto rng = default_random_engine{};
-    shuffle(begin((*r1->tuples)), begin((*r1->tuples)) + app_configs.tuples_no, rng);
+        // Sometimes Generate_Data might generate less than tuples_no
+        if (r1->tuples_no < app_configs.tuples_no) { app_configs.tuples_no = r1->tuples_no; }
+
+        // shuffle the tuples
+        auto rng = default_random_engine{};
+        shuffle(begin((*r1->tuples)), begin((*r1->tuples)) + app_configs.tuples_no, rng);
+    } else if (app_configs.DATASET == "AdTracking") {
+        // read file from repo folder ./data/TalkingData_AdTracking/2017_11_07_small
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
+
+        string current_path = __FILE__;
+        size_t pos = current_path.find("/src/");
+        string filename = current_path.substr(0, pos) + "/data/TalkingData_AdTracking/2017_11_07_small";
+        std::cout << "Reading file: " << filename << std::endl;
+        ifstream in_file(filename);
+        if (!in_file) {
+            cerr << "Unable to open file" << endl;
+            exit(1);
+        }
+
+        string line;
+        int i = 0;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            stringstream ss(line);
+            string token;
+            getline(ss, token, ',');
+            (*r1->tuples)[i] = stoi(token);
+            i++;
+        }
+
+        in_file.close();
+        r1->tuples_no = i;
+        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
+    } else if (app_configs.DATASET == "WebDocs") {
+        // read file from repo folder ./data/WebDocs/webdocs_small
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
+
+        string current_path = __FILE__;
+        size_t pos = current_path.find("/src/");
+        string filename = current_path.substr(0, pos) + "/data/WebDocs/webdocs_small";
+        std::cout << "Reading file: " << filename << std::endl;
+        ifstream in_file(filename);
+        if (!in_file) {
+            cerr << "Unable to open file" << endl;
+            exit(1);
+        }
+
+        string line;
+        int i = 0;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            (*r1->tuples)[i] = stoi(line);
+            i++;
+        }
+
+        in_file.close();
+        r1->tuples_no = i;
+        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
+    } else if (app_configs.DATASET == "CAIDA_H") {
+        // read file from repo folder ./data/CAIDA/caida_10000000_src_port
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
+
+        string current_path = __FILE__;
+        size_t pos = current_path.find("/src/");
+        string filename = current_path.substr(0, pos) + "/data/CAIDA/caida_10000000_src_port";
+        std::cout << "Reading file: " << filename << std::endl;
+        ifstream in_file(filename);
+        if (!in_file) {
+            cerr << "Unable to open file" << endl;
+            exit(1);
+        }
+
+        string line;
+        int i = 0;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            if (!line.empty()) {
+                (*r1->tuples)[i] = stoi(line);
+                i++;
+            }
+        }
+
+        in_file.close();
+        r1->tuples_no = i;
+        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
+    } else if (app_configs.DATASET == "CAIDA_L") {
+        // read file from repo folder ./data/CAIDA/caida_10000000_src_port
+        r1->tuples = new vector<unsigned int>(app_configs.LINE_READ);
+
+        string current_path = __FILE__;
+        size_t pos = current_path.find("/src/");
+        string filename = current_path.substr(0, pos) + "/data/CAIDA/caida_10000000_src_ip_int";
+        std::cout << "Reading file: " << filename << std::endl;
+        ifstream in_file(filename);
+        if (!in_file) {
+            cerr << "Unable to open file" << endl;
+            exit(1);
+        }
+
+        string line;
+        int i = 0;
+        while (getline(in_file, line) && i < app_configs.LINE_READ) {
+            if (!line.empty()) {
+                string ip = line;
+                stringstream ss(ip);
+                string octet;
+                unsigned int result = 0;
+                for (int j = 0; j < 4; j++) {
+                    getline(ss, octet, '.');
+                    result = (result << 8) + stoi(octet);
+                }
+                (*r1->tuples)[i] = result;
+                i++;
+            }
+        }
+        in_file.close();
+        r1->tuples_no = i;
+        app_configs.tuples_no = i;
+        app_configs.LINE_READ = i;
+    }
+
+    else {
+        std::cerr << "Invalid dataset" << std::endl;
+    }
     return r1;
 }

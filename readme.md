@@ -5,13 +5,18 @@
    - [Parallel Cuckoo Heavy Keeper](#parallel-cuckoo-heavy-keeper)
    - [Directory Description](#directory-description)
 
-2. [Prerequisites](#prerequisites)
+2. [Experimental Results](#experimental-results)
+   - [Experimental Setup](#experimental-setup)
+   - [Performance Highlights](#performance-highlights)
+   - [Detailed Results](#detailed-results)
+
+3. [Prerequisites](#prerequisites)
    - [System Requirements](#system-requirements)
    - [Install Dependencies](#install-dependencies)
    - [Python Setup](#python-setup)
    - [Build Configuration](#build-configuration)
 
-3. [Compile & Run](#compile--run)
+4. [Compile & Run](#compile--run)
    - [Sequential Heavy Hitter Examples](#sequential-heavy-hitter-examples)
      - [Available Algorithms](#available-algorithms)
      - [Compile Instructions](#compile-instructions)
@@ -23,9 +28,10 @@
      - [Basic Usage](#basic-usage-1)
      - [Example Commands](#example-commands-1)
 
-4. [Reproduce](#reproduce)
+5. [Reproduce](#reproduce)
    - [Sequential Heavy Hitter Figures](#sequential-heavy-hitter-figures)
    - [Parallel Heavy Hitter Figures](#parallel-heavy-hitter-figures)
+   - [Reproducing Aggregated Comparison Figures](#reproducing-aggregated-comparison-figures)
 
 
 ## Design
@@ -71,7 +77,36 @@
 
 - [`.gitignore`](.gitignore): Git ignore file.
 
-- [`rerun.txt`](rerun.txt): File to track rerun information.
+## Experimental Results
+
+### Experimental Setup
+
+We evaluated both sequential and parallel variants of Cuckoo Heavy Keeper on two hardware platforms:
+- **Platform A**: Intel Xeon E5-2695 v4 dual-socket server (36 cores, 2.1 GHz)
+- **Platform B**: AMD EPYC 9754 single-socket server (128 cores, 2.25 GHz)
+
+Algorithms were tested on both synthetic (Zipfian) datasets and real-world CAIDA network traces with varying skewness.
+
+For detailed information about our experimental methodology, hardware specifications, datasets, and parameter configurations, see our [complete experimental setup documentation](experimental_results/experimental_setup.md).
+
+### Performance Highlights
+
+**Sequential Performance:**
+- Cuckoo Heavy Keeper consistently outperforms other state-of-the-art heavy hitter algorithms in throughput (2-3x improvement)
+- Superior accuracy under constrained memory conditions
+- Better precision-recall balance across different data distributions
+
+**Parallel Performance:**
+- Nearly linear scaling with thread count for both insertion-optimized (mCHKI) and query-optimized (mCHKQ) variants
+- mCHKQ maintains remarkably low query latency (<150 μsec) even at high thread counts
+- Significantly better throughput than parallel versions of other heavy hitter algorithms
+
+### Detailed Results
+
+The detailed experimental results can be found in the [experimental results directory](experimental_results/), including:
+- Sequential evaluation on synthetic and real-world data
+- Parallel throughput and latency measurements
+- Additional validation results
 
 ## Prerequisites
 ### System Requirements
@@ -578,3 +613,17 @@ To reproduce the parallel heavy hitter figures, follow these steps:
     This will generate the latency plots in `experiments/figures`.
 
 The figures will show parallel scaling behavior including throughput and latency metrics across different thread counts.
+
+
+### Reproducing Aggregated Comparison Figures
+
+The scripts shown above specifically plot Cuckoo Heavy Keeper performance. To reproduce the aggregated comparison figures shown in the `experimental_results` directory:
+
+1. **Build all algorithm variants**: Use the targets defined in [`examples/CMakeLists.txt`](examples/CMakeLists.txt) to build all parallel algorithm implementations (mCMS, mAS, mSS, etc.) with both insertion-optimized and query-optimized variants.
+
+2. **Run comparison experiments**: Execute the comparison experiments for all algorithm variants using appropriate parameters.
+
+3. **Generate aggregated figures**: Use the scripts in the `notebooks/revision` folder to process the results and generate the complete comparison figures.
+
+For additional details about the experiment setup and methodology, please refer to our [Experimental Setup](experimental_results/experimental_setup.md) document.
+

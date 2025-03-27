@@ -9,8 +9,10 @@
 #include "frequency_estimator/CountMinSketch.hpp"
 #include "frequency_estimator/CuckooHeavyKeeper.hpp"
 #include "frequency_estimator/FrequencyEstimatorConfig.hpp"
+#include "frequency_estimator/HeapHashMapSpaceSaving.hpp"
+#include "frequency_estimator/HeavyKeeper.hpp"
 #include "frequency_estimator/MacroPreprocessor.hpp"
-#include "frequency_estimator/SequentialHeavyHitterWrapper.hpp"
+#include "frequency_estimator/SequentialHeavyHitterWrapperForParallel.hpp"
 #include "heavy_hitter_app/AppConfig.hpp"
 
 using namespace std;
@@ -18,15 +20,23 @@ using namespace std;
 #if EQUAL(ALGORITHM, count_min)
 using FrequencyEstimatorConfig = CountMinConfig;
 using FrequencyEstimator = CountMinSketch;
-using HeavyHitterTracker = SequentialHeavyHitterWrapper<CountMinSketch, int>;
+using HeavyHitterTracker = SequentialHeavyHitterWrapperForParallel<CountMinSketch, int>;
 #elif EQUAL(ALGORITHM, augmented_sketch)
 using FrequencyEstimatorConfig = AugmentedSketchConfig;
 using FrequencyEstimator = AugmentedSketch;
-using HeavyHitterTracker = SequentialHeavyHitterWrapper<AugmentedSketch, int>;
+using HeavyHitterTracker = SequentialHeavyHitterWrapperForParallel<AugmentedSketch, int>;
 #elif EQUAL(ALGORITHM, cuckoo_heavy_keeper)
 using FrequencyEstimatorConfig = CuckooHeavyKeeperConfig;
 using FrequencyEstimator = CuckooHeavyKeeper;
-using HeavyHitterTracker = SequentialHeavyHitterWrapper<CuckooHeavyKeeper, int>;
+using HeavyHitterTracker = SequentialHeavyHitterWrapperForParallel<CuckooHeavyKeeper, int>;
+#elif EQUAL(ALGORITHM, heavy_keeper)
+using FrequencyEstimatorConfig = HeavyKeeperConfig;
+using FrequencyEstimator = HeavyKeeper;
+using HeavyHitterTracker = SequentialHeavyHitterWrapperForParallel<HeavyKeeper, int>;
+#elif EQUAL(ALGORITHM, heap_hashmap_space_saving)
+using FrequencyEstimatorConfig = SpaceSavingConfig;
+using FrequencyEstimator = HeapHashMapSpaceSavingV2;
+using HeavyHitterTracker = SequentialHeavyHitterWrapperForParallel<HeapHashMapSpaceSavingV2, int>;
 #endif
 
 using DelegationConfigBasedOnMode = DelegationHeavyHitterConfig;

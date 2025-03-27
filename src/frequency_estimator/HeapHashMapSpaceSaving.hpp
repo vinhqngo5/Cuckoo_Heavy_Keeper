@@ -165,6 +165,7 @@ class HeapHashMapSpaceSavingV2 : public FrequencyEstimatorBase {
     }
 
     void _update(const std::string &item, int c) {
+        total += c;
         auto it = item_map.find(item);
         if (it != item_map.end()) {
             Item *updated_item = it->second;
@@ -188,6 +189,8 @@ class HeapHashMapSpaceSavingV2 : public FrequencyEstimatorBase {
     }
 
   public:
+    unsigned int total = 0;
+
     HeapHashMapSpaceSavingV2(int k) : k(k) { heap.reserve(k); }
 
     HeapHashMapSpaceSavingV2(SpaceSavingConfig &config) : k(config.K) { heap.reserve(k); }

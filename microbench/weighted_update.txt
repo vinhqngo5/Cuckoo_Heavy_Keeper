@@ -1,0 +1,92 @@
+> g++ -std=c++23 weighted_update.cpp -O2 -o weighted_update && ./weighted_update
+
+
+Benchmark Results:
+----------------
+Decay base (b): 1.08
+Threshold (Thp): 16
+Number of test cases: 1000000 (Method 1: 10000)
+Per-Operation Performance:
+------------------------
+Method 1 (Repeated unweighted): 3200.0 ns (3.2 µs) [10000 repetitions]
+Method 2 (Logarithmic formula): 50.0 ns [1000000 repetitions]
+Method 3 (Lookup table): 19.0 ns [1000000 repetitions]
+
+Total Execution Times:
+--------------------
+Method 1 - Repeated unweighted updates: 32 ms (10000 cases)
+Method 1 - Estimated for all 1000000 cases: 3200.0 ms
+Method 2 - Logarithmic formula: 50 ms
+Method 3 - Lookup table: 19 ms
+
+Performance Comparisons:
+----------------------
+Method 1 vs Method 2 speedup: 64.00x
+Method 1 vs Method 3 speedup: 168.42x
+Method 2 vs Method 3 speedup: 2.63x
+
+Correctness Verification:
+------------------------
+Method 1 vs Method 2 - Match percentage: 76.54%
+Method 1 vs Method 2 - Average difference: 0.67
+Method 1 vs Method 2 - Maximum difference: 10.00
+
+Method 1 vs Method 3 - Match percentage: 64.93%
+Method 1 vs Method 3 - Average difference: 0.71
+Method 1 vs Method 3 - Maximum difference: 10.00
+
+Method 2 vs Method 3 - Match percentage: 100.00%
+Method 2 vs Method 3 - Average difference: 0.22
+Method 2 vs Method 3 - Maximum difference: 1.00
+
+Sample comparisons (first 5 cases):
+Counter	Weight	Method 1	Method 2	Method 3
+16	9	11		13.19		14
+5	7	0		0.00		0
+4	14	0		0.00		0
+13	24	2		0.00		0
+6	9	0		0.00		0Benchmark Results:
+----------------
+Decay base (b): 1.08
+Threshold (Thp): 16
+Number of test cases: 1000000 (Method 1: 10000)
+Per-Operation Performance:
+------------------------
+Method 1 (Repeated unweighted): 3200.0 ns (3.2 µs) [10000 repetitions]
+Method 2 (Logarithmic formula): 51.0 ns [1000000 repetitions]
+Method 3 (Lookup table): 19.0 ns [1000000 repetitions]
+
+Total Execution Times:
+--------------------
+Method 1 - Repeated unweighted updates: 32 ms (10000 cases)
+Method 1 - Estimated for all 1000000 cases: 3200.0 ms
+Method 2 - Logarithmic formula: 51 ms
+Method 3 - Lookup table: 19 ms
+
+Performance Comparisons:
+----------------------
+Method 1 vs Method 2 speedup: 62.75x
+Method 1 vs Method 3 speedup: 168.42x
+Method 2 vs Method 3 speedup: 2.68x
+
+Correctness Verification:
+------------------------
+Method 1 vs Method 2 - Match percentage: 76.26%
+Method 1 vs Method 2 - Average difference: 0.68
+Method 1 vs Method 2 - Maximum difference: 11.00
+
+Method 1 vs Method 3 - Match percentage: 64.54%
+Method 1 vs Method 3 - Average difference: 0.72
+Method 1 vs Method 3 - Maximum difference: 11.00
+
+Method 2 vs Method 3 - Match percentage: 100.00%
+Method 2 vs Method 3 - Average difference: 0.22
+Method 2 vs Method 3 - Maximum difference: 1.00
+
+Sample comparisons (first 5 cases):
+Counter	Weight	Method 1	Method 2	Method 3
+5	21	0		0.00		0
+11	18	5		0.00		0
+2	5	0		0.00		0
+3	23	0		0.00		0
+1	30	0		0.00		0

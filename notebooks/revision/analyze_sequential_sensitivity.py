@@ -20,10 +20,16 @@ class CuckooParameterSensitivityAnalyzer:
     def __init__(self):
         """Initialize the analyzer with hardcoded folder paths and configuration."""
         # B parameter sensitivity folders
+        # self.b_folders = {
+        #     "1.008": "experiments_sensitivity_20250314/sequential_1.008",
+        #     "1.08": "experiments_sensitivity_20250314/sequential_1.08",
+        #     "1.8": "experiments_sensitivity_20250314/sequential_1.8"
+        # }
+        
         self.b_folders = {
-            "1.008": "experiments_sensitivity_20250314/sequential_1.008",
-            "1.08": "experiments_sensitivity_20250314/sequential_1.08",
-            "1.8": "experiments_sensitivity_20250314/sequential_1.8"
+            "8": "experiments_sensitivity_20250314/sequential_pth_8",
+            "16": "experiments_sensitivity_20250314/sequential_pth_16",
+            "32": "experiments_sensitivity_20250314/sequential_pth_32"
         }
         
         # Heavy entries sensitivity folders
@@ -44,15 +50,20 @@ class CuckooParameterSensitivityAnalyzer:
         
         # Define line styles for different configurations
         self.line_styles = {
+            # For pth parameter
+            "b_8": ("--", "^", self.material_colors["blue"]["700"]),
+            "b_16": ("-", "x", self.material_colors["purple"]["700"]),
+            "b_32": (":", "D", self.material_colors["red"]["500"]),
+            
             # For b parameter
-            "1.008": ("--", "^", self.material_colors["blue"]["500"]),  # Changed from "o" to "^" (triangle)
-            "1.08": ("-", "x", self.material_colors["purple"]["700"]),  # Keep consistent with original
-            "1.8": (":", "D", self.material_colors["red"]["500"]),     # Changed from "s" to "D" (diamond)
+            "1.008": ("--", "^", self.material_colors["blue"]["500"]),
+            "1.08": ("-", "x", self.material_colors["purple"]["700"]),
+            "1.8": (":", "D", self.material_colors["red"]["500"]),
             
             # For heavy entries - use different markers to avoid overlap
-            "2": ("-", "x", self.material_colors["purple"]["700"]),  
-            "4": ("--", "^", self.material_colors["blue"]["700"]),  # Changed from "o" to "^" (triangle)
-            "8": (":", "D", self.material_colors["red"]["500"])    # Changed from "s" to "D" (diamond)
+            "h_2": ("-", "x", self.material_colors["purple"]["700"]),
+            "h_4": ("--", "^", self.material_colors["blue"]["700"]),
+            "h_8": (":", "D", self.material_colors["red"]["500"])
         }
 
     def read_log_file(self, file_path):
@@ -80,12 +91,14 @@ class CuckooParameterSensitivityAnalyzer:
             print(f"Error reading {file_path}: {e}")
         return results
 
-    def collect_sensitivity_data(self, folders_dict):
+    def collect_sensitivity_data(self, folders_dict, param_prefix):
         """Collect sensitivity data from the specified folders."""
         sensitivity_data = {}
         
         for param_value, folder_path in folders_dict.items():
-            sensitivity_data[param_value] = {}
+            # Use prefixed keys for the sensitivity data
+            prefixed_key = f"{param_prefix}_{param_value}"
+            sensitivity_data[prefixed_key] = {}
             
             # Walk through the experiment directory structure
             for base_unit in ["2", "4", "8", "16", "32"]:
@@ -114,7 +127,7 @@ class CuckooParameterSensitivityAnalyzer:
                 # Calculate average ARE for this BASE_UNIT value
                 if all_results:
                     avg_are = np.mean([r['ARE'] for r in all_results])
-                    sensitivity_data[param_value][base_unit] = avg_are
+                    sensitivity_data[prefixed_key][base_unit] = avg_are
                 else:
                     print(f"No valid results found in {exp_path}")
         
@@ -123,8 +136,8 @@ class CuckooParameterSensitivityAnalyzer:
     def analyze_and_visualize(self):
         """Analyze both parameter sensitivities and create visualization."""
         # Collect data for both parameter types
-        b_sensitivity_data = self.collect_sensitivity_data(self.b_folders)
-        heavy_entries_sensitivity_data = self.collect_sensitivity_data(self.heavy_entries_folders)
+        b_sensitivity_data = self.collect_sensitivity_data(self.b_folders, "b")
+        heavy_entries_sensitivity_data = self.collect_sensitivity_data(self.heavy_entries_folders, "h")
         
         # Create the visualization
         self.create_side_by_side_plots(b_sensitivity_data, heavy_entries_sensitivity_data)
@@ -170,7 +183,7 @@ class CuckooParameterSensitivityAnalyzer:
         # Plot b parameter sensitivity
         self._create_sensitivity_plot(
             ax2, b_data, 
-            "CHK: decay base b=1.008, 1.08, 1.8",
+            "CHK: promotion threshold L = 8, 16, 32",
             "Memory Size (KB)",
             "log10(ARE)"
         )
@@ -211,6 +224,9 @@ class CuckooParameterSensitivityAnalyzer:
             if not results:
                 continue
                 
+            # Extract the value without prefix for display
+            display_value = param_value.split('_')[1] if '_' in param_value else param_value
+            
             # Get sorted BASE_UNIT values and corresponding ARE values
             base_units = sorted([int(bu) for bu in results.keys()])
             are_values = [np.log10(results[str(bu)]) for bu in base_units]
@@ -221,17 +237,18 @@ class CuckooParameterSensitivityAnalyzer:
                 "base_units": base_units,
                 "are_values": are_values,
                 "raw_values": raw_values,
-                "color": self.line_styles[param_value][2]
+                "color": self.line_styles[param_value][2],
+                "display_value": display_value  # Store display value for annotations
             }
             
             # Get line style for this parameter value
             linestyle, marker, color = self.line_styles[param_value]
             
-            # Plot the line
+            # Plot the line with display value (no prefix) as label
             ax.plot(
                 base_units, 
                 are_values,
-                label=param_value,
+                label=display_value,  # Use value without prefix for display
                 color=color,
                 linestyle=linestyle,
                 # marker=marker,  # Commented out as in the original code
@@ -350,7 +367,7 @@ class CuckooParameterSensitivityAnalyzer:
             imp_data = improvement_data[param]
             
             # Format improvement text
-            if abs(imp_data["max"] - imp_data["min"]) < 0.8:  # Small range
+            if abs(imp_data["max"] - imp_data["min"]) < 1.2:  # Small range
                 imp_text = f"{self._format_improvement(imp_data['min'])}×"
             else:
                 min_text = self._format_improvement(imp_data["min"])

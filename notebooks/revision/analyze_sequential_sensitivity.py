@@ -145,7 +145,7 @@ class CuckooParameterSensitivityAnalyzer:
     def create_side_by_side_plots(self, b_data, heavy_entries_data):
         """Create two side-by-side plots with consistent styling."""
         # Set up the figure with two subplots side by side
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(5.6, 1.6))
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(5.95, 1.7))
         
         # Get the notebooks directory (one level up from the revision directory)
         notebooks_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -176,7 +176,7 @@ class CuckooParameterSensitivityAnalyzer:
         self._create_sensitivity_plot(
             ax1, heavy_entries_data,
             "CHK: heavy entries per bucket = 2, 4, 8",
-            "Memory Size (KB)",
+            "Memory(KB)",
             "log10(ARE)"
         )
         
@@ -184,7 +184,7 @@ class CuckooParameterSensitivityAnalyzer:
         self._create_sensitivity_plot(
             ax2, b_data, 
             "CHK: promotion threshold L = 8, 16, 32",
-            "Memory Size (KB)",
+            "Memory(KB)",
             "log10(ARE)"
         )
         
@@ -203,7 +203,7 @@ class CuckooParameterSensitivityAnalyzer:
         # Save the figure
         os.makedirs("figures", exist_ok=True)
         plt.savefig("figures/parameter_sensitivity.pdf", format='pdf', bbox_inches='tight', pad_inches=0.03, dpi=2000)
-        plt.savefig("figures/parameter_sensitivity.png", dpi=3000)
+        plt.savefig("figures/parameter_sensitivity.png", dpi=2000)
         plt.close()
 
     def _create_sensitivity_plot(self, ax, data, title, xlabel, ylabel):
@@ -211,9 +211,9 @@ class CuckooParameterSensitivityAnalyzer:
         # Font configuration
         font_config = {
             'family': 'serif',
-            'title_size': 10,
-            'label_size': 8,
-            'tick_size': 8,
+            'title_size': 12,
+            'label_size': 12,
+            'tick_size': 10,
             'annotation_size': 8  # Small font for annotations
         }
         

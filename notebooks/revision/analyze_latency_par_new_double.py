@@ -163,7 +163,7 @@ class LatencyExperimentAnalyzer:
         }
         
         # Create figure
-        fig = plt.figure(figsize=(6.45, 7.8))
+        fig = plt.figure(figsize=(6.45, 7))
         
         # Create a grid with 3 rows (each row contains a main plot and an inset)
         outer_grid = fig.add_gridspec(3, 2, height_ratios=[1, 1, 1], hspace=0.28, wspace=0.24)
@@ -179,7 +179,7 @@ class LatencyExperimentAnalyzer:
             
             for col in range(2):
                 # Create nested gridspec inside each cell
-                inner_grid = outer_grid[row, col].subgridspec(2, 1, height_ratios=[4.25, 1.5], hspace=0.7)
+                inner_grid = outer_grid[row, col].subgridspec(2, 1, height_ratios=[4.32, 1.55], hspace=0.9)
                 
                 # Create main plot
                 main_ax = fig.add_subplot(inner_grid[0])
@@ -326,7 +326,7 @@ class LatencyExperimentAnalyzer:
                 
         # Add machine names as a super title for each column
         for machine_idx, machine_name in enumerate(results_by_machine.keys()):
-            fig.text(0.25 + 0.5*machine_idx, 0.905, machine_name, 
+            fig.text(0.25 + 0.5*machine_idx, 0.893, machine_name, 
                     ha='center', fontsize=font_config['machine_name_size'], 
                     fontfamily=font_config['family'])
         
@@ -345,7 +345,9 @@ class LatencyExperimentAnalyzer:
         # Create new handles and labels list organized by algorithm
         new_handles = []
         new_labels = []
-        for algo in sorted(alg_pairs.keys()):
+        custom_order = ['mCMS', 'mAS', 'mSS', 'mCHK']
+        for algo in custom_order:
+        # for algo in sorted(alg_pairs.keys()):
             for handle, label in alg_pairs[algo]:
                 new_handles.append(handle)
                 new_labels.append(label)
@@ -364,7 +366,8 @@ class LatencyExperimentAnalyzer:
         
         # Adjust layout
         plt.tight_layout()
-        plt.subplots_adjust(top=0.878, wspace=0.24)
+        # plt.subplots_adjust(top=0.878, wspace=0.24)
+        plt.subplots_adjust(top=0.864, wspace=0.24)
         
         # Save figure
         figure_path = os.path.join(self.base_paths[0], 'figures')

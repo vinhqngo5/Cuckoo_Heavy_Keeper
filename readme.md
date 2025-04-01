@@ -42,6 +42,13 @@
 ### Parallel Cuckoo Heavy Keeper
 - [`src/delegation_sketch`](src/delegation_sketch): Contains the source code for the parallel designs.
 
+### Experimental Results
+- [`experimental_results/`](experimental_results/): Contains experimental results, figures, and analysis.
+  - [`experimental_setup.md`](experimental_results/experimental_setup.md): Documentation of the experimental methodology and hardware specifications.
+  - [`figures/`](experimental_results/figures/): Generated charts and comparison visualizations.
+
+- [`microbench/`](microbench/): Contains microbenchmarking code for performance optimization and sensitivity analysis.
+
 ### Directory Description
 - [`.devcontainer/`](.devcontainer/): Contains configuration files for the development container.
   - [`devcontainer.json`](.devcontainer/devcontainer.json): Configuration file for the development container.

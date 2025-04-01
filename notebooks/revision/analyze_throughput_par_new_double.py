@@ -163,7 +163,7 @@ class ThroughputExperimentAnalyzer:
         plt.rcParams['font.family'] = font_config['family']
         
         # Create figure with 3x2 subplots (3 rows for query rates, 2 columns for machines)
-        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.8), sharex=False)
+        fig, axs = plt.subplots(3, 2, figsize=(5.6, 4.55), sharex=False)
         
         # Make sure to include all thread values including 2 and 5
         thread_values = sorted([int(x) for x in self.fixed_params['NUM_THREADS']])
@@ -309,7 +309,7 @@ class ThroughputExperimentAnalyzer:
         
         # Add machine names as a super title for each column
         for machine_idx, machine_name in enumerate(results_by_machine.keys()):
-            fig.text(0.25 + 0.5*machine_idx, 0.89, machine_name, 
+            fig.text(0.25 + 0.5*machine_idx, 0.883, machine_name, 
                     ha='center', fontsize=font_config['machine_name_size'], 
                     fontfamily=font_config['family'])
         
@@ -328,7 +328,9 @@ class ThroughputExperimentAnalyzer:
         # Create new handles and labels list organized by algorithm
         new_handles = []
         new_labels = []
-        for algo in sorted(alg_pairs.keys()):
+        custom_order = ['mCMS', 'mAS', 'mSS', 'mCHK']
+        for algo in custom_order:
+        # for algo in sorted(alg_pairs.keys()):
             for handle, label in alg_pairs[algo]:
                 new_handles.append(handle)
                 new_labels.append(label)
@@ -346,8 +348,8 @@ class ThroughputExperimentAnalyzer:
                 prop={'family': font_config['family']})
         
         # Adjust layout
-        plt.tight_layout(pad=0.0, h_pad=0.9, w_pad=0.0)
-        plt.subplots_adjust(top=0.85, wspace=0.18)
+        plt.tight_layout(pad=0.0, h_pad=0.0, w_pad=0.0)
+        plt.subplots_adjust(top=0.837, wspace=0.18)
         
         # Save figure
         figure_path = os.path.join(self.base_paths[0], 'figures')

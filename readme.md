@@ -1,5 +1,9 @@
-## Table of Contents
+## Introduction
+This repository contains the artifact and source code for our paper "Cuckoo Heavy Keeper and the balancing act of maintaining heavy hitters in stream processing" submitted to VLDB 2025. Our contributions include:
+- Cuckoo Heavy Keeper (CHK): A sequential heavy-hitter detection algorithm that outperforms state-of-the-art methods with 1.7-5.7× improved throughput and up to four orders of magnitude better accuracy, even under tight memory constraints.
+- Parallel Processing Framework: A flexible framework capable of parallelizing any heavy-hitter algorithm without requiring mergeability, with two optimization variants (insertion-optimized mCHK-I and query-optimized mCHK-Q). Both parallel implementations achieve near-linear scaling with thread count, reaching **billions of updates per second** on varying hardware while maintaining remarkably low query latency (<150 μsec).
 
+## Table of Contents
 1. [Design](#design)
    - [Cuckoo Heavy Keeper](#cuckoo-heavy-keeper)
    - [Parallel Cuckoo Heavy Keeper](#parallel-cuckoo-heavy-keeper)
@@ -635,3 +639,12 @@ The scripts shown above specifically plot Cuckoo Heavy Keeper performance. To re
 
 For additional details about the experiment setup and methodology, please refer to our [Experimental Setup](experimental_results/experimental_setup.md) document.
 
+## Acknowledgements
+
+We would like to acknowledge the following open-source projects that contributed to our work:
+
+- [DelegationSketch](https://github.com/mpastyl/DelegationSketch) - For providing foundational concepts in parallel sketch algorithms and delegation techniques.
+
+- [libcuckoo](https://github.com/efficient/libcuckoo) - For the efficient concurrent hash table implementation that we adapted to use as a component in our parallel designs.
+
+- [heavy-keeper-project](https://github.com/papergitkeeper/heavy-keeper-project) - For providing source code for the Heavy Keeper algorithm to benchmark against.

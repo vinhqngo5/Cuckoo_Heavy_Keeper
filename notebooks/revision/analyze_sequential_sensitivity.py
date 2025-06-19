@@ -171,6 +171,7 @@ class CuckooParameterSensitivityAnalyzer:
         
         plt.rcParams['font.family'] = font_config['family']
         plt.rcParams['font.serif'] = ['Linux Libertine']
+        plt.rcParams['pdf.fonttype'] = 42
         
         # Plot heavy entries sensitivity
         self._create_sensitivity_plot(

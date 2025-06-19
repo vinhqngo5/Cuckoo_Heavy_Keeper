@@ -133,6 +133,7 @@ class LatencyExperimentAnalyzer:
         }
         plt.rcParams['font.family'] = font_config['family']
         plt.rcParams['font.serif'] = ['Linux Libertine']
+        plt.rcParams['pdf.fonttype'] = 42
         
         # Define query rates with corrected labels
         query_rates = ['0.000000', '1.000000', '10.000000']

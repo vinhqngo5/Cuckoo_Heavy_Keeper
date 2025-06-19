@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 from matplotlib.ticker import MaxNLocator, LinearLocator, FixedLocator
 from matplotlib.ticker import FormatStrFormatter, ScalarFormatter
+import matplotlib.font_manager as fm
 
 
 
@@ -473,19 +474,34 @@ class SequentialExperimentAnalyzer:
         tick labels are placed close to the border, and a horizontal legend with abbreviations is
         placed at the top of the figure.
         """
+        # Get the notebooks directory (one level up from the revision directory)
+        notebooks_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+        # Reference fonts relative to the notebooks directory
+        font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_R.ttf")
+        fm.fontManager.addfont(font_path)
+
+        # Also add the bold variant for titles
+        bold_font_path = os.path.join(notebooks_dir, "fonts", "LinLibertine_RB.ttf")
+        fm.fontManager.addfont(bold_font_path)
+        
         # Font configuration dictionary
         font_config = {
-            'family': 'serif',
-            'title_size': 10,
-            'label_size': 8,
-            'label_size_combined': 10,
-            'tick_size': 8,
-            'tick_size_combined': 8,
-            'legend_size': 8,
-            'annotation_size': 6,  # Reduced size for annotations
-            'offset_size': 8
+            # 'family': 'serif',
+            'family': 'Linux Libertine',
+            'title_size': 12,
+            'label_size': 12,
+            'label_size_combined': 12,
+            'tick_size': 10,
+            'tick_size_combined': 10,
+            'legend_size': 10,
+            'annotation_size': 8,  # Reduced size for annotations
+            'offset_size': 10
         }
         
+        plt.rcParams['font.family'] = font_config['family']
+        plt.rcParams['font.serif'] = ['Linux Libertine']
+        plt.rcParams['pdf.fonttype'] = 42
         material_colors = load_material_colors("/home/vinh/Q32024/CuckooHeavyKeeper/notebooks/material-colors.json")
         figure_path = os.path.join(self.base_path, 'figures')
         os.makedirs(figure_path, exist_ok=True)
@@ -981,6 +997,7 @@ class SequentialExperimentAnalyzer:
 
         plt.tight_layout(pad=0.0, h_pad=0.1, w_pad=0)
         fig_combined.subplots_adjust(top=0.9, wspace=0.2)  # Added wspace for consistent column spacing
+        # fig_combined.subplots_adjust(top=0.877, wspace=0.2)  # Added wspace for consistent column spacing
         combined_filename = "combined_metrics.pdf"
         fig_combined.savefig(os.path.join(figure_path, combined_filename), format='pdf', 
                             bbox_inches='tight', pad_inches=0.03, dpi=2000)
